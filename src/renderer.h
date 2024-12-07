@@ -1,8 +1,11 @@
 #pragma once
+#include <functional>
 #include <iostream>
 #include <vector>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <gpuobjects/model.h>
+#include <gpuobjects/shader.h>
 
 class Renderer
 {
@@ -65,14 +68,62 @@ public:
         glfwSetWindowShouldClose(_window, GL_TRUE);
     }
 
+    const Model& loadModel(const string& filePath)
+    {
+        return _models.emplace_back(filePath);
+    }
+
+    const Shader& loadShader(const string& vertexPath, const string& fragmentPath)
+    {
+        return _shaders.emplace_back(vertexPath, fragmentPath);
+    }
+
+    void setPipeline(std::vector<function<void()>>& newPipeline)
+    {
+        _pipeline = std::move(newPipeline);
+    }
+
+
+    void render()
+    {
+        glfwPollEvents();
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        for (const auto& f : _pipeline)
+        {
+            f();
+        }
+        glfwSwapBuffers(_window);
+    }
+
+    [[nodiscard]] int screenWidth() const
+    {
+        return _screenWidth;
+    }
+
+    int screenHeight() const
+    {
+        return _screenHeight;
+    }
+
+    void setKeyCallback(void (*key_callback)(GLFWwindow* window, int key, int scancode, int action, int mode))
+    {
+        glfwSetKeyCallback(_window, key_callback);
+    }
+
     ~Renderer()
     {
+        _models.clear();
+        _shaders.clear();
         glfwTerminate(); // shaders and models need to be destructed BEFORE calling this
     }
 
 private:
     int _screenWidth = 1200, _screenHeight = 900;
     GLFWwindow* _window = nullptr;
+    std::vector<Model> _models;
+    std::vector<Shader> _shaders;
+    std::vector<function<void()>> _pipeline;
 
     static void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                                  GLchar const* message,
