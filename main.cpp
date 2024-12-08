@@ -22,6 +22,7 @@
 #endif
 
 #include "renderer.h"
+#include "solidcolorshader.h"
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
@@ -34,36 +35,33 @@ int main()
         return init_res;
     }
     r.setKeyCallback(key_callback);
+    r.setProjectionMatrix(glm::perspective(
+        45.0f, static_cast<float>(r.screenWidth()) / static_cast<float>(r.screenHeight()),
+        0.1f, 10000.0f));
+    r.setViewMatrix(lookAt(glm::vec3(0.0f, 0.0f, 18.0f), glm::vec3(0.0f, 0.0f, -7.0f),
+                           glm::vec3(0.0f, 1.0f, 0.0f)));
     std::cout << "init done" << std::endl;
 
     const Model& testModel = r.loadModel("./assets/models/bunny_lp.obj");
-    const Shader& testShader = r.loadShader("./src/shaders/basic.vert", "./src/shaders/solid_color.frag");
+    const Shader& s = r.loadShader("./src/shaders/basic.vert", "./src/shaders/solid_color.frag");
+    const auto solidColorShader = SolidColorShader(s, r);
 
     std::vector<function<void()>> p;
     p.emplace_back([]
     {
         std::cout << "test from pipeline" << std::endl;
     });
-    p.emplace_back([&testShader]
+    p.emplace_back([&solidColorShader]
     {
-        testShader.use();
+        solidColorShader.use(glm::mat4(1.));
     });
-    p.emplace_back([&testModel, &testShader, &r]
+    p.emplace_back([&testModel]
     {
-        glm::mat4 projection = glm::perspective(
-            45.0f, static_cast<float>(r.screenWidth()) / static_cast<float>(r.screenHeight()),
-            0.1f, 10000.0f);
-        glm::mat4 view = lookAt(glm::vec3(0.0f, 0.0f, 18.0f), glm::vec3(0.0f, 0.0f, -7.0f),
-                                glm::vec3(0.0f, 1.0f, 0.0f));
-        glUniformMatrix4fv(glGetUniformLocation(testShader.program(), "projectionMatrix"), 1, GL_FALSE,
-                           value_ptr(projection));
-        glUniformMatrix4fv(glGetUniformLocation(testShader.program(), "viewMatrix"), 1, GL_FALSE,
-                           value_ptr(view));
-        glUniformMatrix4fv(glGetUniformLocation(testShader.program(), "modelMatrix"), 1, GL_FALSE,
-                           value_ptr(glm::mat4(1)));
         testModel.Draw();
     });
+
     r.setPipeline(p);
+
     while (!r.shouldClose())
     {
         r.render();

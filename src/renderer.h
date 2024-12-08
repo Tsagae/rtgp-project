@@ -83,7 +83,6 @@ public:
         _pipeline = std::move(newPipeline);
     }
 
-
     void render()
     {
         glfwPollEvents();
@@ -96,7 +95,32 @@ public:
         glfwSwapBuffers(_window);
     }
 
-    [[nodiscard]] int screenWidth() const
+    void setKeyCallback(void (*key_callback)(GLFWwindow* window, int key, int scancode, int action, int mode))
+    {
+        glfwSetKeyCallback(_window, key_callback);
+    }
+
+    glm::mat4 projectionMatrix() const
+    {
+        return _projectionMatrix;
+    }
+
+    void setProjectionMatrix(const glm::mat4& projection_matrix)
+    {
+        _projectionMatrix = projection_matrix;
+    }
+
+    glm::mat4 viewMatrix() const
+    {
+        return _viewMatrix;
+    }
+
+    void setViewMatrix(const glm::mat4& view_matrix)
+    {
+        _viewMatrix = view_matrix;
+    }
+
+    int screenWidth() const
     {
         return _screenWidth;
     }
@@ -104,11 +128,6 @@ public:
     int screenHeight() const
     {
         return _screenHeight;
-    }
-
-    void setKeyCallback(void (*key_callback)(GLFWwindow* window, int key, int scancode, int action, int mode))
-    {
-        glfwSetKeyCallback(_window, key_callback);
     }
 
     ~Renderer()
@@ -121,6 +140,8 @@ public:
 private:
     int _screenWidth = 1200, _screenHeight = 900;
     GLFWwindow* _window = nullptr;
+    glm::mat4 _projectionMatrix{};
+    glm::mat4 _viewMatrix{};
     std::vector<Model> _models;
     std::vector<Shader> _shaders;
     std::vector<function<void()>> _pipeline;
