@@ -62,8 +62,11 @@ int main()
 
     r.setPipeline(p);
 
+    int frames = 0;
     while (!r.shouldClose())
     {
+        frames++;
+        std::cout << "frame " << std::endl;
         r.render();
     }
 
