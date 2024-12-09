@@ -156,7 +156,8 @@ public:
     {
         _models.clear();
         _shaders.clear();
-        glfwTerminate(); // shaders and models need to be destructed BEFORE calling this
+        _textures.clear();
+        glfwTerminate(); // shaders, models and textures need to be destructed BEFORE calling this
     }
 
 private:
