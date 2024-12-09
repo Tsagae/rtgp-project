@@ -22,7 +22,7 @@
 #endif
 
 #include "renderer.h"
-#include "solidcolorshader.h"
+#include "applytextureshader.h"
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
@@ -43,17 +43,19 @@ int main()
     std::cout << "init done" << std::endl;
 
     const Model& testModel = *r.loadModel("./assets/models/bunny_lp.obj");
-    const Shader& s = *r.loadShader("./src/shaders/basic.vert", "./src/shaders/solid_color.frag");
-    const auto solidColorShader = SolidColorShader(s, r);
+    const Shader& s = *r.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag");
+    const Texture& t = *r.loadTexture("./assets/textures/UV_Grid_Sm.png");
+    const auto applyTextureShader = ApplyTextureShader(s, r);
 
     std::vector<function<void()>> p;
     p.emplace_back([]
     {
         std::cout << "test from pipeline" << std::endl;
     });
-    p.emplace_back([&solidColorShader]
+    p.emplace_back([&applyTextureShader, &t]
     {
-        solidColorShader.use(glm::mat4(1.));
+        applyTextureShader.use(glm::mat4(1.));
+        t.use();
     });
     p.emplace_back([&testModel]
     {

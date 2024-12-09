@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <gpuobjects/model.h>
 #include <gpuobjects/shader.h>
+#include <gpuobjects/texture.h>
 
 class Renderer
 {
@@ -72,13 +73,19 @@ public:
     const Model* loadModel(const string& filePath)
     {
         _models.push_back(std::make_unique<Model const>(filePath));
-        return _models[_models.size()-1].get();
+        return _models[_models.size() - 1].get();
     }
 
     const Shader* loadShader(const string& vertexPath, const string& fragmentPath)
     {
         _shaders.push_back(std::make_unique<Shader const>(vertexPath, fragmentPath));
-        return _shaders[_shaders.size()-1].get();
+        return _shaders[_shaders.size() - 1].get();
+    }
+
+    const Texture* loadTexture(const string& filePath)
+    {
+        _textures.push_back(std::make_unique<Texture const>(filePath));
+        return _textures[_textures.size() - 1].get();
     }
 
     void setPipeline(std::vector<function<void()>>& newPipeline)
@@ -147,6 +154,7 @@ private:
     glm::mat4 _viewMatrix{};
     std::vector<unique_ptr<Model const>> _models;
     std::vector<unique_ptr<Shader const>> _shaders;
+    std::vector<unique_ptr<Texture const>> _textures;
     std::vector<function<void()>> _pipeline;
 
     static void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
