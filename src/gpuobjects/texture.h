@@ -9,10 +9,9 @@ class Texture : NoCopy
 public:
     explicit Texture(const string& pathToTextureFile): NoCopy{}
     {
-        unsigned char* rawData = stbi_load(pathToTextureFile.c_str(), &_width, &_height, &_nrChannels, 0);
-        if (rawData)
+        unsigned char* data = stbi_load(pathToTextureFile.c_str(), &_width, &_height, &_nrChannels, 0);
+        if (data)
         {
-            const unique_ptr<unsigned char> data(rawData);
             glGenTextures(1, &_textureId);
             glBindTexture(GL_TEXTURE_2D, _textureId);
             GLuint internalFormat = 0;
@@ -33,9 +32,10 @@ public:
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _width, _height, 0, internalFormat, GL_UNSIGNED_BYTE, data.get());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _width, _height, 0, internalFormat, GL_UNSIGNED_BYTE, data);
             glGenerateMipmap(GL_TEXTURE_2D);
             glBindTexture(GL_TEXTURE_2D, 0);
+            STBI_FREE(data);
         }
         else
         {

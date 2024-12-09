@@ -45,22 +45,23 @@ int main()
 
     auto testBunny = SceneObject(*r.loadModel("./assets/models/bunny_lp.obj"),
                                  *r.loadTexture("./assets/textures/UV_Grid_Sm.png"));
+    auto cube = SceneObject(*r.loadModel("./assets/models/cube.obj"),
+                            *r.loadTexture("./assets/textures/SoilCracked.png"));
+    cube.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 6)) * rotate(cube.worldSpaceTransform, glm::radians(45.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     const Shader& s = *r.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag");
     const auto applyTextureShader = ApplyTextureShader(s, r);
 
     std::vector<function<void()>> p;
-    p.emplace_back([]
-    {
-        std::cout << "test from pipeline" << std::endl;
-    });
     p.emplace_back([&applyTextureShader, &testBunny]
     {
-        applyTextureShader.use(glm::mat4(testBunny.modelMatrix));
-    });
-    p.emplace_back([&testBunny]
-    {
+        applyTextureShader.use(glm::mat4(testBunny.worldSpaceTransform * testBunny.modelMatrix));
         testBunny.draw();
+    });
+    p.emplace_back([&cube, &applyTextureShader]
+    {
+        applyTextureShader.use(glm::mat4(cube.worldSpaceTransform * cube.modelMatrix));
+        cube.draw();
     });
 
     r.setPipeline(p);
@@ -70,12 +71,12 @@ int main()
     while (!r.shouldClose())
     {
         frames++;
-        std::cout << "frame " << std::endl;
         r.computeDeltaTime();
         const float dt = r.deltaTime();
 
         angleY = 30 * dt;
-        testBunny.modelMatrix = rotate(testBunny.modelMatrix, glm::radians(angleY), glm::vec3(0.0f, 1.0f, 0.0f));
+        testBunny.worldSpaceTransform = rotate(testBunny.worldSpaceTransform, glm::radians(angleY),
+                                               glm::vec3(0.0f, 1.0f, 0.0f));
         r.render();
     }
 
