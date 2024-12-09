@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <vector>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -68,14 +69,16 @@ public:
         glfwSetWindowShouldClose(_window, GL_TRUE);
     }
 
-    const Model& loadModel(const string& filePath)
+    const Model* loadModel(const string& filePath)
     {
-        return _models.emplace_back(filePath);
+        _models.push_back(std::make_unique<Model const>(filePath));
+        return _models[_models.size()-1].get();
     }
 
-    const Shader& loadShader(const string& vertexPath, const string& fragmentPath)
+    const Shader* loadShader(const string& vertexPath, const string& fragmentPath)
     {
-        return _shaders.emplace_back(vertexPath, fragmentPath);
+        _shaders.push_back(std::make_unique<Shader const>(vertexPath, fragmentPath));
+        return _shaders[_shaders.size()-1].get();
     }
 
     void setPipeline(std::vector<function<void()>>& newPipeline)
@@ -142,8 +145,8 @@ private:
     GLFWwindow* _window = nullptr;
     glm::mat4 _projectionMatrix{};
     glm::mat4 _viewMatrix{};
-    std::vector<Model> _models;
-    std::vector<Shader> _shaders;
+    std::vector<unique_ptr<Model const>> _models;
+    std::vector<unique_ptr<Shader const>> _shaders;
     std::vector<function<void()>> _pipeline;
 
     static void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,

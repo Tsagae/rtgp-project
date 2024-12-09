@@ -42,8 +42,8 @@ int main()
                            glm::vec3(0.0f, 1.0f, 0.0f)));
     std::cout << "init done" << std::endl;
 
-    const Model& testModel = r.loadModel("./assets/models/bunny_lp.obj");
-    const Shader& s = r.loadShader("./src/shaders/basic.vert", "./src/shaders/solid_color.frag");
+    const Model& testModel = *r.loadModel("./assets/models/bunny_lp.obj");
+    const Shader& s = *r.loadShader("./src/shaders/basic.vert", "./src/shaders/solid_color.frag");
     const auto solidColorShader = SolidColorShader(s, r);
 
     std::vector<function<void()>> p;
