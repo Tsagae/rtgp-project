@@ -93,6 +93,13 @@ public:
         _pipeline = std::move(newPipeline);
     }
 
+    void computeDeltaTime()
+    {
+        _currentFrame = static_cast<GLfloat>(glfwGetTime());
+        _deltaTime = _currentFrame - _lastFrame;
+        _lastFrame = _currentFrame;
+    }
+
     void render()
     {
         glfwPollEvents();
@@ -103,6 +110,11 @@ public:
             f();
         }
         glfwSwapBuffers(_window);
+    }
+
+    float deltaTime() const
+    {
+        return _deltaTime;
     }
 
     void setKeyCallback(void (*key_callback)(GLFWwindow* window, int key, int scancode, int action, int mode))
@@ -149,6 +161,7 @@ public:
 
 private:
     int _screenWidth = 1200, _screenHeight = 900;
+    float _deltaTime = 0, _lastFrame = 0, _currentFrame = 0;
     GLFWwindow* _window = nullptr;
     glm::mat4 _projectionMatrix{};
     glm::mat4 _viewMatrix{};

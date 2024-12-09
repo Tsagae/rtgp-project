@@ -23,6 +23,7 @@
 
 #include "renderer.h"
 #include "applytextureshader.h"
+#include "sceneobject.h"
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
@@ -42,9 +43,10 @@ int main()
                            glm::vec3(0.0f, 1.0f, 0.0f)));
     std::cout << "init done" << std::endl;
 
-    const Model& testModel = *r.loadModel("./assets/models/bunny_lp.obj");
+    auto testBunny = SceneObject(*r.loadModel("./assets/models/bunny_lp.obj"),
+                                 *r.loadTexture("./assets/textures/UV_Grid_Sm.png"));
+
     const Shader& s = *r.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag");
-    const Texture& t = *r.loadTexture("./assets/textures/UV_Grid_Sm.png");
     const auto applyTextureShader = ApplyTextureShader(s, r);
 
     std::vector<function<void()>> p;
@@ -52,23 +54,28 @@ int main()
     {
         std::cout << "test from pipeline" << std::endl;
     });
-    p.emplace_back([&applyTextureShader, &t]
+    p.emplace_back([&applyTextureShader, &testBunny]
     {
-        applyTextureShader.use(glm::mat4(1.));
-        t.use();
+        applyTextureShader.use(glm::mat4(testBunny.modelMatrix));
     });
-    p.emplace_back([&testModel]
+    p.emplace_back([&testBunny]
     {
-        testModel.Draw();
+        testBunny.draw();
     });
 
     r.setPipeline(p);
 
     int frames = 0;
+    float angleY = 0;
     while (!r.shouldClose())
     {
         frames++;
         std::cout << "frame " << std::endl;
+        r.computeDeltaTime();
+        const float dt = r.deltaTime();
+
+        angleY = 30 * dt;
+        testBunny.modelMatrix = rotate(testBunny.modelMatrix, glm::radians(angleY), glm::vec3(0.0f, 1.0f, 0.0f));
         r.render();
     }
 
