@@ -47,7 +47,8 @@ int main()
                                  *r.loadTexture("./assets/textures/UV_Grid_Sm.png"));
     auto cube = SceneObject(*r.loadModel("./assets/models/cube.obj"),
                             *r.loadTexture("./assets/textures/SoilCracked.png"));
-    cube.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 6)) * rotate(cube.worldSpaceTransform, glm::radians(45.f), glm::vec3(0.0f, 1.0f, 0.0f));
+    cube.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 6)) * rotate(
+        cube.worldSpaceTransform, glm::radians(45.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     const Shader& s = *r.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag");
     const auto applyTextureShader = ApplyTextureShader(s, r);
@@ -55,12 +56,12 @@ int main()
     std::vector<function<void()>> p;
     p.emplace_back([&applyTextureShader, &testBunny]
     {
-        applyTextureShader.use(glm::mat4(testBunny.worldSpaceTransform * testBunny.modelMatrix));
+        applyTextureShader.use(testBunny.worldModelMatrix());
         testBunny.draw();
     });
     p.emplace_back([&cube, &applyTextureShader]
     {
-        applyTextureShader.use(glm::mat4(cube.worldSpaceTransform * cube.modelMatrix));
+        applyTextureShader.use(cube.worldModelMatrix());
         cube.draw();
     });
 

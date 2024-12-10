@@ -24,6 +24,11 @@ public:
         _model.Draw();
     }
 
+    glm::mat4 worldModelMatrix() const
+    {
+        return worldSpaceTransform * modelMatrix;
+    }
+
 private:
     const Model& _model;
     const Texture& _texture;
