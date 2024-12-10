@@ -22,8 +22,7 @@
 #endif
 
 #include "renderer.h"
-#include "applytextureshader.h"
-#include "sceneobject.h"
+#include "scene.h"
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
@@ -43,41 +42,16 @@ int main()
                            glm::vec3(0.0f, 1.0f, 0.0f)));
     std::cout << "init done" << std::endl;
 
-    auto testBunny = SceneObject(*r.loadModel("./assets/models/bunny_lp.obj"),
-                                 *r.loadTexture("./assets/textures/UV_Grid_Sm.png"));
-    auto cube = SceneObject(*r.loadModel("./assets/models/cube.obj"),
-                            *r.loadTexture("./assets/textures/SoilCracked.png"));
-    cube.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 6)) * rotate(
-        cube.worldSpaceTransform, glm::radians(45.f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-    const Shader& s = *r.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag");
-    const auto applyTextureShader = ApplyTextureShader(s, r);
-
-    std::vector<function<void()>> p;
-    p.emplace_back([&applyTextureShader, &testBunny]
-    {
-        applyTextureShader.use(testBunny.worldModelMatrix());
-        testBunny.draw();
-    });
-    p.emplace_back([&cube, &applyTextureShader]
-    {
-        applyTextureShader.use(cube.worldModelMatrix());
-        cube.draw();
-    });
-
-    r.setPipeline(p);
+    auto scene = Scene(r);
+    scene.init();
 
     int frames = 0;
-    float angleY = 0;
     while (!r.shouldClose())
     {
         frames++;
         r.computeDeltaTime();
         const float dt = r.deltaTime();
-
-        angleY = 30 * dt;
-        testBunny.worldSpaceTransform = rotate(testBunny.worldSpaceTransform, glm::radians(angleY),
-                                               glm::vec3(0.0f, 1.0f, 0.0f));
+        scene.mainLoop(dt);
         r.render();
     }
 
