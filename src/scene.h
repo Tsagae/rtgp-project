@@ -2,6 +2,7 @@
 
 #include "sceneobject.h"
 #include "applytextureshader.h"
+#include "debugbuffer.h"
 
 class Scene
 {
@@ -13,7 +14,9 @@ public:
               *_renderer.loadModel("./assets/models/bunny_lp.obj"),
               *_renderer.loadTexture("./assets/textures/UV_Grid_Sm.png"))),
           _applyTextureShader(
-              *_renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag"), _renderer)
+              *_renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag"), _renderer),
+          _debugBuffer(_applyTextureShader, _renderer, _renderer.screenWidth(), _renderer.screenHeight()),
+          _testTexture{_renderer.loadTexture("./assets/textures/UV_Grid_Sm.png")}
     {
     }
 
@@ -33,6 +36,10 @@ public:
             _applyTextureShader.use(_cube.worldModelMatrix());
             _cube.draw();
         });
+        p.emplace_back([&]
+        {
+            _debugBuffer.DisplayFramebufferTexture(_testTexture->textureId());
+        });
 
         _renderer.setPipeline(p);
     }
@@ -49,5 +56,7 @@ private:
     SceneObject _cube;
     SceneObject _testBunny;
     ApplyTextureShader _applyTextureShader;
+    DebugBuffer _debugBuffer;
+    const Texture* _testTexture;
     float _angleY = 0;
 };

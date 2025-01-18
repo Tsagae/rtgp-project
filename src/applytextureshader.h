@@ -20,6 +20,17 @@ public:
                            value_ptr(modelMatrix));
     }
 
+    void use(const glm::mat4& modelMatrix, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) const
+    {
+        _shader.use();
+        glUniformMatrix4fv(glGetUniformLocation(_shader.program(), "projectionMatrix"), 1, GL_FALSE,
+                           value_ptr(projectionMatrix));
+        glUniformMatrix4fv(glGetUniformLocation(_shader.program(), "viewMatrix"), 1, GL_FALSE,
+                           value_ptr(viewMatrix));
+        glUniformMatrix4fv(glGetUniformLocation(_shader.program(), "modelMatrix"), 1, GL_FALSE,
+                           value_ptr(modelMatrix));
+    }
+
 private:
     const Shader& _shader;
     const Renderer& _renderer;
