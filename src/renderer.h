@@ -70,22 +70,40 @@ public:
         glfwSetWindowShouldClose(_window, GL_TRUE);
     }
 
-    const Model* loadModel(const string& filePath)
+    const Model& loadModel(const string& filePath)
     {
-        _models.push_back(std::make_unique<Model const>(filePath));
-        return _models[_models.size() - 1].get();
+        const auto iter = _models.find(filePath);
+        if (iter == _models.end())
+        {
+            _models[filePath] = std::make_unique<Model const>(filePath);
+            return *_models[filePath].get();
+        }
+        return *iter->second.get();
     }
 
-    const Shader* loadShader(const string& vertexPath, const string& fragmentPath)
+    const Shader& loadShader(const string& vertexPath, const string& fragmentPath)
     {
-        _shaders.push_back(std::make_unique<Shader const>(vertexPath, fragmentPath));
-        return _shaders[_shaders.size() - 1].get();
+        const auto joinedPath = vertexPath+fragmentPath;
+        const auto iter = _shaders.find(joinedPath);
+        if (iter == _shaders.end())
+        {
+            _shaders[joinedPath] = std::make_unique<Shader const>(vertexPath, fragmentPath);
+            std::cout << "shaders in memory: " << _shaders.size() << std::endl;
+            return *_shaders[joinedPath].get();
+        }
+        std::cout << "shaders in memory: " << _shaders.size() << std::endl;
+        return *iter->second.get();
     }
 
-    const Texture* loadTexture(const string& filePath)
+    const Texture& loadTexture(const string& filePath)
     {
-        _textures.push_back(std::make_unique<Texture const>(filePath));
-        return _textures[_textures.size() - 1].get();
+        const auto iter = _textures.find(filePath);
+        if (iter == _textures.end())
+        {
+            _textures[filePath] = std::make_unique<Texture const>(filePath);
+            return *_textures[filePath].get();
+        }
+        return *iter->second.get();
     }
 
     void setPipeline(std::vector<function<void()>>& newPipeline)
@@ -166,9 +184,9 @@ private:
     GLFWwindow* _window = nullptr;
     glm::mat4 _projectionMatrix{};
     glm::mat4 _viewMatrix{};
-    std::vector<unique_ptr<Model const>> _models;
-    std::vector<unique_ptr<Shader const>> _shaders;
-    std::vector<unique_ptr<Texture const>> _textures;
+    std::unordered_map<string, unique_ptr<Model const>> _models;
+    std::unordered_map<string, unique_ptr<Shader const>> _shaders; //TODO: change implementation to something like unordered_map<pair/tuple, value>
+    std::unordered_map<string, unique_ptr<Texture const>> _textures;
     std::vector<function<void()>> _pipeline;
 
     static void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
