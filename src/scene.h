@@ -3,6 +3,7 @@
 #include "sceneobject.h"
 #include "applytextureshader.h"
 #include "debugbuffer.h"
+#include <gpuobjects/particles.h>
 
 class Scene
 {
@@ -16,7 +17,12 @@ public:
           _applyTextureShader(
               _renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag"), _renderer),
           _debugBuffer(_applyTextureShader, _renderer, _renderer.screenWidth(), _renderer.screenHeight()),
-          _testTexture{_renderer.loadTexture("./assets/textures/UV_Grid_Sm.png")}
+          _testTexture{_renderer.loadTexture("./assets/textures/UV_Grid_Sm.png")},
+          _particles{
+              Particles(
+                  100, _renderer.loadShader("./src/shaders/basic_particle.vert", "./src/shaders/solid_color.frag"),
+                  _renderer)
+          }
     {
     }
 
@@ -26,6 +32,7 @@ public:
             _cube.worldSpaceTransform, glm::radians(45.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
         std::vector<function<void()>> p;
+        /*
         p.emplace_back([&]
         {
             _applyTextureShader.use(_testBunny.worldModelMatrix());
@@ -40,7 +47,11 @@ public:
         {
             _debugBuffer.DisplayFramebufferTexture(_testTexture.textureId());
         });
-
+        */
+        p.emplace_back([&]
+        {
+            _particles.drawParticles();
+        });
         _renderer.setPipeline(p);
     }
 
@@ -49,6 +60,8 @@ public:
         _angleY = 30 * dt;
         _testBunny.worldSpaceTransform = rotate(_testBunny.worldSpaceTransform, glm::radians(_angleY),
                                                 glm::vec3(0.0f, 1.0f, 0.0f));
+        _particles.spawnParticles(5, glm::vec3{0,0,-10}, glm::vec3{0,-1,0},100);
+        _particles.updateParticles(_renderer.viewMatrix()[3], dt);
     }
 
 private:
@@ -57,6 +70,7 @@ private:
     SceneObject _testBunny;
     ApplyTextureShader _applyTextureShader;
     DebugBuffer _debugBuffer;
+    Particles _particles;
     const Texture& _testTexture;
     float _angleY = 0;
 };
