@@ -23,11 +23,14 @@
 
 #include "renderer.h"
 #include "scene.h"
+#include <utils/random_utils.h>
+
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 int main()
 {
+    randInit();
     Renderer r;
     auto init_res = r.init();
     if (init_res != 0)

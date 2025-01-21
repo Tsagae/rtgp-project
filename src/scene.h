@@ -4,6 +4,7 @@
 #include "applytextureshader.h"
 #include "debugbuffer.h"
 #include <gpuobjects/particles.h>
+#include <utils/random_utils.h>
 
 class Scene
 {
@@ -60,7 +61,7 @@ public:
         _angleY = 30 * dt;
         _testBunny.worldSpaceTransform = rotate(_testBunny.worldSpaceTransform, glm::radians(_angleY),
                                                 glm::vec3(0.0f, 1.0f, 0.0f));
-        _particles.spawnParticles(5, glm::vec3{0,0,-10}, glm::vec3{0,-1,0},100);
+        _particles.spawnParticles(1, glm::vec3{randMinusOneOne()*5,randMinusOneOne()*5,-10}, glm::vec3{0,-1,0},1);
         _particles.updateParticles(_renderer.viewMatrix()[3], dt);
     }
 
