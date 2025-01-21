@@ -24,29 +24,36 @@
 #include "renderer.h"
 #include "scene.h"
 #include <utils/random_utils.h>
+#include "camera.h"
 
-
+Camera camera{};
+double cursorX, cursorY;
+bool keys[1024];
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void input_handling();
 
 int main()
 {
     randInit();
-    Renderer r;
+    Renderer r(camera);
     auto init_res = r.init();
     if (init_res != 0)
     {
         return init_res;
     }
-    r.setKeyCallback(key_callback);
     r.setProjectionMatrix(glm::perspective(
         45.0f, static_cast<float>(r.screenWidth()) / static_cast<float>(r.screenHeight()),
         0.1f, 10000.0f));
-    r.setViewMatrix(lookAt(glm::vec3(0.0f, 0.0f, 18.0f), glm::vec3(0.0f, 0.0f, -7.0f),
-                           glm::vec3(0.0f, 1.0f, 0.0f)));
+    camera.transform = inverse(lookAt(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(0.0f, 0.0f, -7.0f),
+                                      glm::vec3(0.0f, 1.0f, 0.0f)));
     std::cout << "init done" << std::endl;
 
     auto scene = Scene(r);
     scene.init();
+
+    r.setKeyCallback(key_callback);
+    r.setCursorPosCallback(mouse_callback);
 
     int frames = 0;
     while (!r.shouldClose())
@@ -54,19 +61,61 @@ int main()
         frames++;
         r.computeDeltaTime();
         const float dt = r.deltaTime();
+        input_handling();
+        camera.move(10, dt);
         scene.mainLoop(dt);
         r.render();
+        glfwPollEvents();
     }
 
     return 0;
 }
 
-
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
-        std::cout << "pressing esc" << std::endl;
-        glfwSetWindowShouldClose(window, GL_TRUE);
+        if (action == GLFW_PRESS)
+            keys[key] = true;
+        else if (action == GLFW_RELEASE)
+            keys[key] = false;
+
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        {
+            std::cout << "pressing esc" << std::endl;
+            glfwSetWindowShouldClose(window, GL_TRUE);
+        }
+    };
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    double dx = xpos - cursorX;
+    double dy = ypos - cursorY;
+    //std::cout << "x: " << xpos << " y: " << ypos << std::endl;
+    //std::cout << "dx: " << dx << " dy: " << dy << std::endl;
+
+    cursorX = xpos;
+    cursorY = ypos;
+
+    camera.mouseRotate(dx, dy);
+}
+
+void input_handling()
+{
+    if (keys[GLFW_KEY_W])
+    {
+        camera.addDirection(Direction::FORWARD);
+    }
+    if (keys[GLFW_KEY_A])
+    {
+        camera.addDirection(Direction::LEFT);
+    }
+    if (keys[GLFW_KEY_S])
+    {
+        camera.addDirection(Direction::BACKWARDS);
+    }
+    if (keys[GLFW_KEY_D])
+    {
+        camera.addDirection(Direction::RIGHT);
     }
 }

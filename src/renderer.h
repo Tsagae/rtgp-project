@@ -1,4 +1,5 @@
 #pragma once
+#include <camera.h>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -12,6 +13,11 @@
 class Renderer
 {
 public:
+    explicit Renderer(Camera& camera)
+        : camera(camera)
+    {
+    }
+
     int init()
     {
         glfwInit();
@@ -49,6 +55,7 @@ public:
         int width, height;
         glfwGetFramebufferSize(_window, &width, &height);
         glViewport(0, 0, width, height);
+        glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
@@ -83,7 +90,7 @@ public:
 
     const Shader& loadShader(const string& vertexPath, const string& fragmentPath)
     {
-        const auto joinedPath = vertexPath+fragmentPath;
+        const auto joinedPath = vertexPath + fragmentPath;
         const auto iter = _shaders.find(joinedPath);
         if (iter == _shaders.end())
         {
@@ -120,8 +127,6 @@ public:
 
     void render()
     {
-        glfwPollEvents();
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         for (const auto& f : _pipeline)
         {
@@ -140,6 +145,11 @@ public:
         glfwSetKeyCallback(_window, key_callback);
     }
 
+    void setCursorPosCallback(void (*mouse_callback)(GLFWwindow* window, double xpos, double ypos))
+    {
+        glfwSetCursorPosCallback(_window, mouse_callback);
+    }
+
     glm::mat4 projectionMatrix() const
     {
         return _projectionMatrix;
@@ -152,12 +162,7 @@ public:
 
     glm::mat4 viewMatrix() const
     {
-        return _viewMatrix;
-    }
-
-    void setViewMatrix(const glm::mat4& view_matrix)
-    {
-        _viewMatrix = view_matrix;
+        return inverse((camera.getTransform()));
     }
 
     int screenWidth() const
@@ -179,13 +184,14 @@ public:
     }
 
 private:
+    Camera& camera;
     int _screenWidth = 1200, _screenHeight = 900;
     float _deltaTime = 0, _lastFrame = 0, _currentFrame = 0;
     GLFWwindow* _window = nullptr;
     glm::mat4 _projectionMatrix{};
-    glm::mat4 _viewMatrix{};
     std::unordered_map<string, unique_ptr<Model const>> _models;
-    std::unordered_map<string, unique_ptr<Shader const>> _shaders; //TODO: change implementation to something like unordered_map<pair/tuple, value>
+    std::unordered_map<string, unique_ptr<Shader const>> _shaders;
+    //TODO: change implementation to something like unordered_map<pair/tuple, value>
     std::unordered_map<string, unique_ptr<Texture const>> _textures;
     std::vector<function<void()>> _pipeline;
 

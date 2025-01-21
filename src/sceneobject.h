@@ -1,4 +1,6 @@
 #pragma once
+#include <gpuobjects/model.h>
+#include <gpuobjects/texture.h>
 
 class SceneObject
 {

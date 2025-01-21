@@ -1,4 +1,6 @@
 #pragma once
+#include <gpuobjects/shader.h>
+
 #include "renderer.h"
 
 class ApplyTextureShader
@@ -13,9 +15,9 @@ public:
     {
         _shader.use();
         glUniformMatrix4fv(glGetUniformLocation(_shader.program(), "projectionMatrix"), 1, GL_FALSE,
-                           value_ptr(_renderer.projectionMatrix()));
+                           glm::value_ptr(_renderer.projectionMatrix()));
         glUniformMatrix4fv(glGetUniformLocation(_shader.program(), "viewMatrix"), 1, GL_FALSE,
-                           value_ptr(_renderer.viewMatrix()));
+                           glm::value_ptr(_renderer.viewMatrix()));
         glUniformMatrix4fv(glGetUniformLocation(_shader.program(), "modelMatrix"), 1, GL_FALSE,
                            value_ptr(modelMatrix));
     }

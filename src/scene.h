@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sceneobject.h"
+#include "renderer.h"
 #include "applytextureshader.h"
 #include "debugbuffer.h"
 #include <gpuobjects/particles.h>
@@ -18,12 +19,12 @@ public:
           _applyTextureShader(
               _renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag"), _renderer),
           _debugBuffer(_applyTextureShader, _renderer, _renderer.screenWidth(), _renderer.screenHeight()),
-          _testTexture{_renderer.loadTexture("./assets/textures/UV_Grid_Sm.png")},
           _particles{
               Particles(
                   100, _renderer.loadShader("./src/shaders/basic_particle.vert", "./src/shaders/solid_color.frag"),
                   _renderer)
-          }
+          },
+          _testTexture{_renderer.loadTexture("./assets/textures/UV_Grid_Sm.png")}
     {
     }
 
@@ -32,13 +33,15 @@ public:
         _cube.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 6)) * rotate(
             _cube.worldSpaceTransform, glm::radians(45.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
+        _testBunny.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, 0, -10));
+
         std::vector<function<void()>> p;
-        /*
         p.emplace_back([&]
         {
             _applyTextureShader.use(_testBunny.worldModelMatrix());
             _testBunny.draw();
         });
+        /*
         p.emplace_back([&]
         {
             _applyTextureShader.use(_cube.worldModelMatrix());
@@ -48,11 +51,11 @@ public:
         {
             _debugBuffer.DisplayFramebufferTexture(_testTexture.textureId());
         });
-        */
         p.emplace_back([&]
         {
             _particles.drawParticles();
         });
+        */
         _renderer.setPipeline(p);
     }
 
@@ -61,7 +64,8 @@ public:
         _angleY = 30 * dt;
         _testBunny.worldSpaceTransform = rotate(_testBunny.worldSpaceTransform, glm::radians(_angleY),
                                                 glm::vec3(0.0f, 1.0f, 0.0f));
-        _particles.spawnParticles(1, glm::vec3{randMinusOneOne()*5,randMinusOneOne()*5,-10}, glm::vec3{0,-1,0},1);
+        _particles.spawnParticles(1, glm::vec3{randMinusOneOne() * 5, randMinusOneOne() * 5, -10}, glm::vec3{0, -1, 0},
+                                  1);
         _particles.updateParticles(_renderer.viewMatrix()[3], dt);
     }
 
