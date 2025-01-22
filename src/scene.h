@@ -73,7 +73,10 @@ public:
                                   1, glm::vec4{
                                       randZeroOne() / 2 + 0.25, randZeroOne() / 2 + 0.25, randZeroOne() / 2 + 0.25, 0.30
                                   }, randZeroOne() + 1);
-        _particles.updateParticles(_renderer.getCamera().position(), dt);
+        _particles.updateParticles(_renderer.getCamera().position(), dt, [](Particle& p, const float dt)
+        {
+            p.pos += p.velocity * dt;
+        });
     }
 
 private:

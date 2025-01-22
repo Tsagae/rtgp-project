@@ -84,8 +84,8 @@ public:
         }
     }
 
-
-    void updateParticles(const glm::vec3 cameraPosition, const float dt)
+    void updateParticles(const glm::vec3 cameraPosition, const float dt,
+                         const std::function<void(Particle&, float dt)>& updateFunc)
     {
         for (auto i = 0; i < livingParticles; i++)
         {
@@ -99,8 +99,8 @@ public:
             }
             else
             {
-                p.pos += p.velocity * dt;
-                auto d = p.pos - cameraPosition;
+                updateFunc(p, dt);
+                const auto d = p.pos - cameraPosition;
                 p.cameraDistance = dot(d, d);
             }
         }
