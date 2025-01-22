@@ -46,7 +46,6 @@ public:
     void mouseRotate(float dx, float dy)
     {
         yaw += -dx * sensitivity;
-        yaw = glm::clamp(yaw, -89.f, +89.f);
 
         pitch += -dy * sensitivity;
         pitch = glm::clamp(pitch, -89.f, +89.f);
