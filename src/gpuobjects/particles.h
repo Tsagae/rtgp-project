@@ -4,6 +4,7 @@ struct Particle
 {
     glm::vec3 pos;
     glm::vec3 velocity;
+    glm::vec4 color;
     float life;
     float cameraDistance; // *Squared* distance to the camera. if dead : -1.0f
 
@@ -33,6 +34,10 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
         glBufferData(GL_ARRAY_BUFFER, maxParticles * 3 * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
 
+        glGenBuffers(1, &particles_color_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
+        glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
+
         glGenVertexArrays(1, &vao);
         glBindVertexArray(vao);
 
@@ -44,8 +49,13 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
         glVertexAttribPointer(1, 3,GL_FLOAT,GL_FALSE, 0, nullptr);
 
+        glEnableVertexAttribArray(2);
+        glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
+        glVertexAttribPointer(2, 4,GL_FLOAT,GL_FALSE, 0, nullptr);
+
         glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
         glVertexAttribDivisor(1, 1); // positions : one per quad (its center) -> 1
+        glVertexAttribDivisor(2, 1); // positions : one per quad -> 1
 
         glBindVertexArray(0);
 
@@ -57,7 +67,7 @@ public:
     }
 
     void spawnParticles(const int n_of_particles, const glm::vec3& startPos, const glm::vec3& velocity,
-                        const float startLife)
+                        const float startLife, const glm::vec4 color)
     {
         const int deadParticles = particles.size() - livingParticles;
         const auto particles_to_spawn = glm::min(deadParticles, n_of_particles);
@@ -68,6 +78,7 @@ public:
             p.life = startLife;
             p.pos = startPos;
             p.velocity = velocity;
+            p.color = color;
         }
     }
 
@@ -96,18 +107,27 @@ public:
     void drawParticles()
     {
         g_particle_position_size_data.clear();
+        g_particle_color_data.clear();
+        std::sort(&particles[0], &particles[livingParticles]);
         for (auto i = 0; i < livingParticles; i++)
         {
             auto& p = particles[i];
-            g_particle_position_size_data.push_back(p.pos.x);
-            g_particle_position_size_data.push_back(p.pos.y);
-            g_particle_position_size_data.push_back(p.pos.z);
+            g_particle_position_size_data.emplace_back(p.pos.x);
+            g_particle_position_size_data.emplace_back(p.pos.y);
+            g_particle_position_size_data.emplace_back(p.pos.z);
+            g_particle_color_data.emplace_back(p.color);
         }
         glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
         glBufferData(GL_ARRAY_BUFFER, g_particle_position_size_data.size() * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
         // Buffer orphaning, a common way to improve streaming perf
         glBufferSubData(GL_ARRAY_BUFFER, 0, g_particle_position_size_data.size() * sizeof(GLfloat),
                         g_particle_position_size_data.data());
+
+        glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
+        glBufferData(GL_ARRAY_BUFFER, g_particle_color_data.size() * sizeof(glm::vec4), nullptr, GL_STREAM_DRAW);
+        // Buffer orphaning, a common way to improve streaming perf
+        glBufferSubData(GL_ARRAY_BUFFER, 0, g_particle_color_data.size() * sizeof(glm::vec4),
+                        g_particle_color_data.data());
 
         shader.use();
         glUniformMatrix4fv(glGetUniformLocation(shader.program(), "projectionMatrix"), 1, GL_FALSE,
@@ -125,15 +145,19 @@ public:
     Particles(Particles&& other) noexcept: NoCopy{}, shader{other.shader}, renderer{other.renderer},
                                            billboard_vertex_buffer{other.billboard_vertex_buffer},
                                            particles_position_buffer{other.particles_position_buffer},
+                                           particles_color_buffer{other.particles_color_buffer},
                                            vao{other.vao},
                                            maxParticles{other.maxParticles},
                                            g_particle_position_size_data(
                                                std::move(other.g_particle_position_size_data)),
+                                           g_particle_color_data(
+                                               std::move(other.g_particle_color_data)),
                                            particles(std::move(other.particles)),
                                            livingParticles{other.livingParticles}
     {
         other.billboard_vertex_buffer = 0;
         other.particles_position_buffer = 0;
+        other.particles_color_buffer = 0;
         other.maxParticles = 0;
         other.livingParticles = 0;
         other.vao = 0;
@@ -146,9 +170,11 @@ private:
     const Renderer& renderer;
     GLuint billboard_vertex_buffer{0};
     GLuint particles_position_buffer{0};
+    GLuint particles_color_buffer{0};
     GLuint vao{0};
     GLuint maxParticles{0};
     std::vector<GLfloat> g_particle_position_size_data{};
+    std::vector<glm::vec4> g_particle_color_data{};
     std::vector<Particle> particles{};
     int livingParticles{0}; //also first position of dead particles
 
@@ -157,8 +183,9 @@ private:
     {
         if (vao)
         {
-            glDeleteBuffers(1, &particles_position_buffer);
             glDeleteBuffers(1, &billboard_vertex_buffer);
+            glDeleteBuffers(1, &particles_position_buffer);
+            glDeleteBuffers(1, &particles_color_buffer);
             vao = 0;
         }
     }

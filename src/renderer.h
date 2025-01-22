@@ -57,12 +57,13 @@ public:
         glViewport(0, 0, width, height);
         glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
-        glClearColor(0.5, 0.5, 0.5, 1.0f);
-
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
+
+        glClearColor(0.5, 0.5, 0.5, 1.0f);
 
         return 0;
     }

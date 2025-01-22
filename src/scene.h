@@ -21,7 +21,8 @@ public:
           _debugBuffer(_applyTextureShader, _renderer, _renderer.screenWidth(), _renderer.screenHeight()),
           _particles{
               Particles(
-                  100, _renderer.loadShader("./src/shaders/basic_particle.vert", "./src/shaders/solid_color.frag"),
+                  100, _renderer.loadShader("./src/shaders/billboard_particle.vert",
+                                            "./src/shaders/billboard_particle.frag"),
                   _renderer)
           },
           _testTexture{_renderer.loadTexture("./assets/textures/UV_Grid_Sm.png")}
@@ -54,7 +55,9 @@ public:
         });
         p.emplace_back([&]
         {
+            glDisable(GL_CULL_FACE);
             _particles.drawParticles();
+            glEnable(GL_CULL_FACE);
         });
 
         _renderer.setPipeline(p);
@@ -66,9 +69,12 @@ public:
         _testBunny.worldSpaceTransform = rotate(_testBunny.worldSpaceTransform, glm::radians(_angleY),
                                                 glm::vec3(0.0f, 1.0f, 0.0f));
         _particles.spawnParticles(1, glm::vec3{randMinusOneOne() * 5, randMinusOneOne() * 5, -10}, glm::vec3{0, -1, 0},
-                                  1);
-        _particles.updateParticles(_renderer.viewMatrix()[3], dt);
+                                  1, glm::vec4{
+                                      randZeroOne() / 2 + 0.25, randZeroOne() / 2 + 0.25, randZeroOne() / 2 + 0.25, 0.30
+                                  });
+        _particles.updateParticles(_renderer.getCamera().position(), dt);
     }
+
 
 private:
     Renderer& _renderer;
