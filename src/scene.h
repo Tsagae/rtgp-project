@@ -13,7 +13,7 @@ public:
     explicit Scene(Renderer& renderer)
         : _renderer(renderer),
           _cube(SceneObject(_renderer.loadModel("./assets/models/cube.obj"),
-                            _renderer.loadTexture("./assets/textures/SoilCracked.png"))), _testBunny(SceneObject(
+                            _renderer.loadTexture("./assets/textures/UV_Grid_Sm.png"))), _testBunny(SceneObject(
               _renderer.loadModel("./assets/models/bunny_lp.obj"),
               _renderer.loadTexture("./assets/textures/UV_Grid_Sm.png"))),
           _applyTextureShader(
@@ -36,12 +36,17 @@ public:
         _testBunny.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, 0, -10));
 
         std::vector<function<void()>> p;
+        /*
         p.emplace_back([&]
         {
             _applyTextureShader.use(_testBunny.worldModelMatrix());
             _testBunny.draw();
         });
-        /*
+        p.emplace_back([&]
+        {
+            _debugBuffer.DisplayFramebufferTexture(_testTexture.textureId());
+        });
+        */
         p.emplace_back([&]
         {
             _applyTextureShader.use(_cube.worldModelMatrix());
@@ -49,13 +54,9 @@ public:
         });
         p.emplace_back([&]
         {
-            _debugBuffer.DisplayFramebufferTexture(_testTexture.textureId());
-        });
-        p.emplace_back([&]
-        {
             _particles.drawParticles();
         });
-        */
+
         _renderer.setPipeline(p);
     }
 

@@ -114,6 +114,8 @@ public:
                            value_ptr(_renderer.projectionMatrix()));
         glUniformMatrix4fv(glGetUniformLocation(_shader.program(), "viewMatrix"), 1, GL_FALSE,
                            value_ptr(_renderer.viewMatrix()));
+        glUniformMatrix3fv(glGetUniformLocation(_shader.program(), "cameraOrientation"), 1, GL_FALSE,
+                           value_ptr(_renderer.getCamera().getOrientation()));
 
         glBindVertexArray(_vao);
         glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, _livingParticles);

@@ -175,6 +175,11 @@ public:
         return _screenHeight;
     }
 
+    const Camera& getCamera() const
+    {
+        return camera;
+    }
+
     ~Renderer()
     {
         _models.clear();
