@@ -29,9 +29,10 @@
 Camera camera{};
 double cursorX, cursorY;
 bool keys[1024];
+bool first_mouse_input = true;
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void first_mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void input_handling();
 
 int main()
@@ -46,16 +47,15 @@ int main()
     r.setProjectionMatrix(glm::perspective(
         45.0f, static_cast<float>(r.screenWidth()) / static_cast<float>(r.screenHeight()),
         0.1f, 10000.0f));
-    camera.transform = inverse(lookAt(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(0.0f, 0.0f, -7.0f),
-                                      glm::vec3(0.0f, 1.0f, 0.0f)));
+    camera.setTransform(inverse(lookAt(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(0.0f, 0.0f, -7.0f),
+                                       glm::vec3(0.0f, 1.0f, 0.0f))));
     std::cout << "init done" << std::endl;
 
     auto scene = Scene(r);
     scene.init();
 
-    r.setCursorPosCallback(first_mouse_callback);
-    glfwPollEvents();
-
+    glfwSetCursorPos(r.getGlfwWindow(), static_cast<float>(r.screenWidth()) / 2,
+                     static_cast<float>(r.screenHeight()) / 2);
     r.setKeyCallback(key_callback);
     r.setCursorPosCallback(mouse_callback);
 
@@ -91,14 +91,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
         if (key == GLFW_KEY_R && action == GLFW_PRESS)
         {
-            camera.transform = inverse(lookAt(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(0.0f, 0.0f, -7.0f),
-                                              glm::vec3(0.0f, 1.0f, 0.0f)));
+            first_mouse_input = true;
+            camera.setTransform(inverse(lookAt(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(10.0f, 0.0f, -7.0f),
+                                               glm::vec3(0.0f, 1.0f, 0.0f))));
         }
     };
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+    if (first_mouse_input)
+    {
+        cursorX = xpos;
+        cursorY = ypos;
+        first_mouse_input = false;
+    }
     double dx = xpos - cursorX;
     double dy = ypos - cursorY;
 
@@ -106,12 +113,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     cursorY = ypos;
 
     camera.mouseRotate(dx, dy);
-}
-
-void first_mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    cursorX = xpos;
-    cursorY = ypos;
 }
 
 void input_handling()

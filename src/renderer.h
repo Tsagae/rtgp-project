@@ -39,8 +39,6 @@ public:
         glfwSetWindowShouldClose(_window, GL_FALSE);
         //glfwSwapInterval(0); //disables vsync
 
-        //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
         // GLAD tries to load the context set by GLFW
         if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
         {
@@ -189,9 +187,14 @@ public:
         glfwTerminate(); // shaders, models and textures need to be destructed BEFORE calling this
     }
 
+    GLFWwindow* getGlfwWindow() const
+    {
+        return _window;
+    }
+
 private:
     Camera& camera;
-    int _screenWidth = 1200, _screenHeight = 900;
+    int _screenWidth = 500, _screenHeight = 500;
     float _deltaTime = 0, _lastFrame = 0, _currentFrame = 0;
     GLFWwindow* _window = nullptr;
     glm::mat4 _projectionMatrix{};

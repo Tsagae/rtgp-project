@@ -4,11 +4,11 @@
 #include <utils/directions.h>
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 class Camera
 {
 public:
-    glm::mat4 transform{};
     float sensitivity{0.1};
 
     void addDirection(const Direction dir)
@@ -71,7 +71,17 @@ public:
         return transform;
     }
 
+    void setTransform(const glm::mat4& mat)
+    {
+        //TODO: computation of pitch and yaw is incorrect and redundant with the transform. Keep only pitch, yaw and position and compute transform on the fly
+        transform = mat;
+        const auto cam_orientation = orientation();
+        yaw = glm::degrees(angle(getVector(Direction::FORWARD), -cam_orientation[2]));
+        pitch = glm::degrees(angle(getVector(Direction::UP),  cam_orientation[1]));
+    };
+
 private:
+    glm::mat4 transform{};
     std::vector<Direction> movementQueue{};
     float pitch{}, yaw{};
 };
