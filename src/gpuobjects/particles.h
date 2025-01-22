@@ -17,7 +17,7 @@ class Particles : NoCopy
 {
 public:
     explicit Particles(const GLuint maxParticles, const Shader& shader, const Renderer& renderer)
-        : NoCopy{}, _maxParticles{maxParticles}, _shader{shader}, _renderer{renderer}
+        : NoCopy{}, shader{shader}, renderer{renderer}, maxParticles{maxParticles}
     {
         static constexpr GLfloat g_vertex_buffer_data[] = {
             -0.5f, -0.5f, 0.0f,
@@ -25,23 +25,23 @@ public:
             -0.5f, 0.5f, 0.0f,
             0.5f, 0.5f, 0.0f,
         };
-        glGenBuffers(1, &_billboard_vertex_buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, _billboard_vertex_buffer);
+        glGenBuffers(1, &billboard_vertex_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
-        glGenBuffers(1, &_particles_position_buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, _particles_position_buffer);
-        glBufferData(GL_ARRAY_BUFFER, _maxParticles * 3 * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
+        glGenBuffers(1, &particles_position_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
+        glBufferData(GL_ARRAY_BUFFER, maxParticles * 3 * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
 
-        glGenVertexArrays(1, &_vao);
-        glBindVertexArray(_vao);
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
 
         glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, _billboard_vertex_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
         glVertexAttribPointer(0, 3,GL_FLOAT, GL_FALSE, 0, nullptr);
 
         glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, _particles_position_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
         glVertexAttribPointer(1, 3,GL_FLOAT,GL_FALSE, 0, nullptr);
 
         glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
@@ -49,22 +49,22 @@ public:
 
         glBindVertexArray(0);
 
-        _particles.reserve(_maxParticles);
-        for (auto i = 0; i < _maxParticles; i++)
+        particles.reserve(maxParticles);
+        for (auto i = 0; i < maxParticles; i++)
         {
-            _particles.emplace_back(Particle{});
+            particles.emplace_back(Particle{});
         }
     }
 
     void spawnParticles(const int n_of_particles, const glm::vec3& startPos, const glm::vec3& velocity,
                         const float startLife)
     {
-        const int deadParticles = _particles.size() - _livingParticles;
+        const int deadParticles = particles.size() - livingParticles;
         const auto particles_to_spawn = glm::min(deadParticles, n_of_particles);
-        const auto upperBound = _livingParticles + particles_to_spawn;
-        for (auto& i = _livingParticles; i < upperBound; i++)
+        const auto upperBound = livingParticles + particles_to_spawn;
+        for (auto& i = livingParticles; i < upperBound; i++)
         {
-            auto& p = _particles[i];
+            auto& p = particles[i];
             p.life = startLife;
             p.pos = startPos;
             p.velocity = velocity;
@@ -74,14 +74,14 @@ public:
 
     void updateParticles(const glm::vec3 cameraPosition, const float dt)
     {
-        for (auto i = 0; i < _livingParticles; i++)
+        for (auto i = 0; i < livingParticles; i++)
         {
-            auto& p = _particles[i];
+            auto& p = particles[i];
             p.life -= dt;
             if (p.life < 0)
             {
-                _livingParticles--;
-                std::swap(_particles[i], _particles[_livingParticles]);
+                livingParticles--;
+                std::swap(particles[i], particles[livingParticles]);
                 i--;
             }
             else
@@ -95,71 +95,71 @@ public:
 
     void drawParticles()
     {
-        _g_particle_position_size_data.clear();
-        for (auto i = 0; i < _livingParticles; i++)
+        g_particle_position_size_data.clear();
+        for (auto i = 0; i < livingParticles; i++)
         {
-            auto& p = _particles[i];
-            _g_particle_position_size_data.push_back(p.pos.x);
-            _g_particle_position_size_data.push_back(p.pos.y);
-            _g_particle_position_size_data.push_back(p.pos.z);
+            auto& p = particles[i];
+            g_particle_position_size_data.push_back(p.pos.x);
+            g_particle_position_size_data.push_back(p.pos.y);
+            g_particle_position_size_data.push_back(p.pos.z);
         }
-        glBindBuffer(GL_ARRAY_BUFFER, _particles_position_buffer);
-        glBufferData(GL_ARRAY_BUFFER, _g_particle_position_size_data.size() * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
+        glBufferData(GL_ARRAY_BUFFER, g_particle_position_size_data.size() * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
         // Buffer orphaning, a common way to improve streaming perf
-        glBufferSubData(GL_ARRAY_BUFFER, 0, _g_particle_position_size_data.size() * sizeof(GLfloat),
-                        _g_particle_position_size_data.data());
+        glBufferSubData(GL_ARRAY_BUFFER, 0, g_particle_position_size_data.size() * sizeof(GLfloat),
+                        g_particle_position_size_data.data());
 
-        _shader.use();
-        glUniformMatrix4fv(glGetUniformLocation(_shader.program(), "projectionMatrix"), 1, GL_FALSE,
-                           value_ptr(_renderer.projectionMatrix()));
-        glUniformMatrix4fv(glGetUniformLocation(_shader.program(), "viewMatrix"), 1, GL_FALSE,
-                           value_ptr(_renderer.viewMatrix()));
-        glUniformMatrix3fv(glGetUniformLocation(_shader.program(), "cameraOrientation"), 1, GL_FALSE,
-                           value_ptr(_renderer.getCamera().getOrientation()));
+        shader.use();
+        glUniformMatrix4fv(glGetUniformLocation(shader.program(), "projectionMatrix"), 1, GL_FALSE,
+                           value_ptr(renderer.projectionMatrix()));
+        glUniformMatrix4fv(glGetUniformLocation(shader.program(), "viewMatrix"), 1, GL_FALSE,
+                           value_ptr(renderer.viewMatrix()));
+        glUniformMatrix3fv(glGetUniformLocation(shader.program(), "cameraOrientation"), 1, GL_FALSE,
+                           value_ptr(renderer.getCamera().orientation()));
 
-        glBindVertexArray(_vao);
-        glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, _livingParticles);
+        glBindVertexArray(vao);
+        glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, livingParticles);
         glBindVertexArray(0);
     }
 
-    Particles(Particles&& other) noexcept: NoCopy{}, _shader{other._shader}, _renderer{other._renderer},
-                                           _billboard_vertex_buffer{other._billboard_vertex_buffer},
-                                           _particles_position_buffer{other._particles_position_buffer},
-                                           _maxParticles{other._maxParticles},
-                                           _g_particle_position_size_data(
-                                               std::move(other._g_particle_position_size_data)),
-                                           _particles(std::move(other._particles)),
-                                           _livingParticles{other._livingParticles},
-                                           _vao{other._vao}
+    Particles(Particles&& other) noexcept: NoCopy{}, shader{other.shader}, renderer{other.renderer},
+                                           billboard_vertex_buffer{other.billboard_vertex_buffer},
+                                           particles_position_buffer{other.particles_position_buffer},
+                                           vao{other.vao},
+                                           maxParticles{other.maxParticles},
+                                           g_particle_position_size_data(
+                                               std::move(other.g_particle_position_size_data)),
+                                           particles(std::move(other.particles)),
+                                           livingParticles{other.livingParticles}
     {
-        other._billboard_vertex_buffer = 0;
-        other._particles_position_buffer = 0;
-        other._maxParticles = 0;
-        other._livingParticles = 0;
-        other._vao = 0;
+        other.billboard_vertex_buffer = 0;
+        other.particles_position_buffer = 0;
+        other.maxParticles = 0;
+        other.livingParticles = 0;
+        other.vao = 0;
     };
 
     Particles& operator=(Particles&& other) noexcept = delete;
 
 private:
-    const Shader& _shader;
-    const Renderer& _renderer;
-    GLuint _billboard_vertex_buffer{0};
-    GLuint _particles_position_buffer{0};
-    GLuint _vao{0};
-    GLuint _maxParticles{0};
-    std::vector<GLfloat> _g_particle_position_size_data{};
-    std::vector<Particle> _particles{};
-    int _livingParticles{0}; //also first position of dead particles
+    const Shader& shader;
+    const Renderer& renderer;
+    GLuint billboard_vertex_buffer{0};
+    GLuint particles_position_buffer{0};
+    GLuint vao{0};
+    GLuint maxParticles{0};
+    std::vector<GLfloat> g_particle_position_size_data{};
+    std::vector<Particle> particles{};
+    int livingParticles{0}; //also first position of dead particles
 
 
     void freeGPUResources()
     {
-        if (_vao)
+        if (vao)
         {
-            glDeleteBuffers(1, &_particles_position_buffer);
-            glDeleteBuffers(1, &_billboard_vertex_buffer);
-            _vao = 0;
+            glDeleteBuffers(1, &particles_position_buffer);
+            glDeleteBuffers(1, &billboard_vertex_buffer);
+            vao = 0;
         }
     }
 };

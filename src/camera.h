@@ -1,12 +1,9 @@
 #pragma once
 
-#include <algorithm>
 #include <vector>
 #include <utils/directions.h>
 #include <glm/gtx/norm.hpp>
-#include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/euler_angles.hpp>
-#include <glm/gtx/vector_angle.hpp>
 
 class Camera
 {
@@ -36,35 +33,35 @@ public:
             return;
         }
 
-        groundDirection =  getOrientation() * groundDirection;
+        groundDirection = orientation() * groundDirection;
         groundDirection.y = verticalDirection.y;
-        auto newPosition = getPosition() + normalize(groundDirection) * magnitude * dt;
-        transform = glm::mat4{getOrientation()};
+        const auto newPosition = position() + normalize(groundDirection) * magnitude * dt;
+        transform = glm::mat4{orientation()};
         transform[3] = glm::vec4{newPosition, 1};
     }
 
-    void mouseRotate(float dx, float dy)
+    void mouseRotate(const float dx, const float dy)
     {
         yaw += -dx * sensitivity;
 
         pitch += -dy * sensitivity;
         pitch = glm::clamp(pitch, -89.f, +89.f);
 
-        transform = translate(glm::mat4{1}, getPosition()) *
+        transform = translate(glm::mat4{1}, position()) *
             glm::yawPitchRoll(glm::radians(yaw), glm::radians(pitch), 0.f);
     }
 
     [[nodiscard]] glm::vec3 cameraForward() const
     {
-        return normalize(cross(getVector(Direction::UP), getOrientation()[0]));
+        return normalize(cross(getVector(Direction::UP), orientation()[0]));
     }
 
-    [[nodiscard]] glm::mat3 getOrientation() const
+    [[nodiscard]] glm::mat3 orientation() const
     {
         return transform;
     }
 
-    [[nodiscard]] glm::vec3 getPosition() const
+    [[nodiscard]] glm::vec3 position() const
     {
         return transform[3];
     }
