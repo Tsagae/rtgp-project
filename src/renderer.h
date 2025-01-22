@@ -194,7 +194,7 @@ public:
 
 private:
     Camera& camera;
-    int _screenWidth = 500, _screenHeight = 500;
+    int _screenWidth = 800, _screenHeight = 600;
     float _deltaTime = 0, _lastFrame = 0, _currentFrame = 0;
     GLFWwindow* _window = nullptr;
     glm::mat4 _projectionMatrix{};
