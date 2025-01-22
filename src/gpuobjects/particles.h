@@ -5,6 +5,7 @@ struct Particle
     glm::vec3 pos;
     glm::vec3 velocity;
     glm::vec4 color;
+    GLfloat size;
     float life;
     float cameraDistance; // *Squared* distance to the camera. if dead : -1.0f
 
@@ -30,9 +31,9 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
-        glGenBuffers(1, &particles_position_buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-        glBufferData(GL_ARRAY_BUFFER, maxParticles * 3 * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
+        glGenBuffers(1, &particles_position_size_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, particles_position_size_buffer);
+        glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
 
         glGenBuffers(1, &particles_color_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
@@ -46,8 +47,8 @@ public:
         glVertexAttribPointer(0, 3,GL_FLOAT, GL_FALSE, 0, nullptr);
 
         glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-        glVertexAttribPointer(1, 3,GL_FLOAT,GL_FALSE, 0, nullptr);
+        glBindBuffer(GL_ARRAY_BUFFER, particles_position_size_buffer);
+        glVertexAttribPointer(1, 4,GL_FLOAT,GL_FALSE, 0, nullptr);
 
         glEnableVertexAttribArray(2);
         glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
@@ -67,7 +68,7 @@ public:
     }
 
     void spawnParticles(const int n_of_particles, const glm::vec3& startPos, const glm::vec3& velocity,
-                        const float startLife, const glm::vec4 color)
+                        const float startLife, const glm::vec4 color, const float size)
     {
         const int deadParticles = particles.size() - livingParticles;
         const auto particles_to_spawn = glm::min(deadParticles, n_of_particles);
@@ -79,6 +80,7 @@ public:
             p.pos = startPos;
             p.velocity = velocity;
             p.color = color;
+            p.size = size;
         }
     }
 
@@ -115,9 +117,10 @@ public:
             g_particle_position_size_data.emplace_back(p.pos.x);
             g_particle_position_size_data.emplace_back(p.pos.y);
             g_particle_position_size_data.emplace_back(p.pos.z);
+            g_particle_position_size_data.emplace_back(p.size);
             g_particle_color_data.emplace_back(p.color);
         }
-        glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, particles_position_size_buffer);
         glBufferData(GL_ARRAY_BUFFER, g_particle_position_size_data.size() * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
         // Buffer orphaning, a common way to improve streaming perf
         glBufferSubData(GL_ARRAY_BUFFER, 0, g_particle_position_size_data.size() * sizeof(GLfloat),
@@ -144,7 +147,7 @@ public:
 
     Particles(Particles&& other) noexcept: NoCopy{}, shader{other.shader}, renderer{other.renderer},
                                            billboard_vertex_buffer{other.billboard_vertex_buffer},
-                                           particles_position_buffer{other.particles_position_buffer},
+                                           particles_position_size_buffer{other.particles_position_size_buffer},
                                            particles_color_buffer{other.particles_color_buffer},
                                            vao{other.vao},
                                            maxParticles{other.maxParticles},
@@ -156,7 +159,7 @@ public:
                                            livingParticles{other.livingParticles}
     {
         other.billboard_vertex_buffer = 0;
-        other.particles_position_buffer = 0;
+        other.particles_position_size_buffer = 0;
         other.particles_color_buffer = 0;
         other.maxParticles = 0;
         other.livingParticles = 0;
@@ -169,7 +172,7 @@ private:
     const Shader& shader;
     const Renderer& renderer;
     GLuint billboard_vertex_buffer{0};
-    GLuint particles_position_buffer{0};
+    GLuint particles_position_size_buffer{0};
     GLuint particles_color_buffer{0};
     GLuint vao{0};
     GLuint maxParticles{0};
@@ -184,7 +187,7 @@ private:
         if (vao)
         {
             glDeleteBuffers(1, &billboard_vertex_buffer);
-            glDeleteBuffers(1, &particles_position_buffer);
+            glDeleteBuffers(1, &particles_position_size_buffer);
             glDeleteBuffers(1, &particles_color_buffer);
             vao = 0;
         }

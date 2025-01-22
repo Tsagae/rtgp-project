@@ -68,13 +68,13 @@ public:
         _angleY = 30 * dt;
         _testBunny.worldSpaceTransform = rotate(_testBunny.worldSpaceTransform, glm::radians(_angleY),
                                                 glm::vec3(0.0f, 1.0f, 0.0f));
-        _particles.spawnParticles(1, glm::vec3{randMinusOneOne() * 5, randMinusOneOne() * 5, -10}, glm::vec3{0, -1, 0},
+        _particles.spawnParticles(1, glm::vec3{randMinusOneOne() * 10, randMinusOneOne() * 10, -10},
+                                  glm::vec3{0, -1, 0},
                                   1, glm::vec4{
                                       randZeroOne() / 2 + 0.25, randZeroOne() / 2 + 0.25, randZeroOne() / 2 + 0.25, 0.30
-                                  });
+                                  }, randZeroOne() + 1);
         _particles.updateParticles(_renderer.getCamera().position(), dt);
     }
-
 
 private:
     Renderer& _renderer;
