@@ -145,6 +145,21 @@ public:
         glBindVertexArray(0);
     }
 
+    GLuint getMaxParticles() const
+    {
+        return maxParticles;
+    }
+
+    GLuint getLivingParticles() const
+    {
+        return livingParticles;
+    }
+
+    GLuint getDeadParticles() const
+    {
+        return maxParticles - livingParticles;
+    }
+
     Particles(Particles&& other) noexcept: NoCopy{}, shader{other.shader}, renderer{other.renderer},
                                            billboard_vertex_buffer{other.billboard_vertex_buffer},
                                            particles_position_size_buffer{other.particles_position_size_buffer},

@@ -60,11 +60,19 @@ int main()
     r.setCursorPosCallback(mouse_callback);
 
     int frames = 0;
+    float cumulative_dt = 0;
     while (!r.shouldClose())
     {
         frames++;
         r.computeDeltaTime();
         const float dt = r.deltaTime();
+        cumulative_dt += dt;
+        if (cumulative_dt >= 1)
+        {
+            cumulative_dt = 0;
+            std::cout << "dt: " << dt * 1000 << "ms" << std::endl;
+            std::cout << "FPS: " << 1 / dt << std::endl;
+        }
         input_handling();
         camera.move(10, dt);
         scene.mainLoop(dt);

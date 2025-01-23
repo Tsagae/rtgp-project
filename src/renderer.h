@@ -37,7 +37,7 @@ public:
         }
         glfwMakeContextCurrent(_window);
         glfwSetWindowShouldClose(_window, GL_FALSE);
-        //glfwSwapInterval(0); //disables vsync
+        glfwSwapInterval(0); //disables vsync
 
         // GLAD tries to load the context set by GLFW
         if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
@@ -53,7 +53,7 @@ public:
         int width, height;
         glfwGetFramebufferSize(_window, &width, &height);
         glViewport(0, 0, width, height);
-        glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        //glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -194,7 +194,7 @@ public:
 
 private:
     Camera& camera;
-    int _screenWidth = 800, _screenHeight = 600;
+    int _screenWidth = 1920, _screenHeight = 1080;
     float _deltaTime = 0, _lastFrame = 0, _currentFrame = 0;
     GLFWwindow* _window = nullptr;
     glm::mat4 _projectionMatrix{};
