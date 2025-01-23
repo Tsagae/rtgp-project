@@ -28,13 +28,13 @@ public:
                 groundDirection += getVector(d);
         }
         movementQueue.clear();
+
+        groundDirection = orientation() * groundDirection;
+        groundDirection.y = verticalDirection.y;
         if (length2(groundDirection) < glm::epsilon<float>())
         {
             return;
         }
-
-        groundDirection = orientation() * groundDirection;
-        groundDirection.y = verticalDirection.y;
         const auto newPosition = position() + normalize(groundDirection) * magnitude * dt;
         transform = glm::mat4{orientation()};
         transform[3] = glm::vec4{newPosition, 1};
@@ -77,7 +77,7 @@ public:
         transform = mat;
         const auto cam_orientation = orientation();
         yaw = glm::degrees(angle(getVector(Direction::FORWARD), -cam_orientation[2]));
-        pitch = glm::degrees(angle(getVector(Direction::UP),  cam_orientation[1]));
+        pitch = glm::degrees(angle(getVector(Direction::UP), cam_orientation[1]));
     };
 
 private:
