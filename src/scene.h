@@ -22,7 +22,7 @@ public:
           _particles{
               Particles(
                   10000, _renderer.loadShader("./src/shaders/billboard_particle.vert",
-                                                "./src/shaders/billboard_particle.frag"),
+                                              "./src/shaders/billboard_particle.frag"),
                   _renderer)
           },
           _testTexture{_renderer.loadTexture("./assets/textures/UV_Grid_Sm.png")}
@@ -47,19 +47,18 @@ public:
         {
             _debugBuffer.DisplayFramebufferTexture(_testTexture.textureId());
         });
-        */
         p.emplace_back([&]
         {
             _applyTextureShader.use(_cube.worldModelMatrix());
             _cube.draw();
         });
+        */
         p.emplace_back([&]
         {
             glDisable(GL_CULL_FACE);
             _particles.drawParticles();
             glEnable(GL_CULL_FACE);
         });
-
         _renderer.setPipeline(p);
     }
 
@@ -78,9 +77,10 @@ public:
                                           0.30
                                       }, (randZeroOne() + 1) / 5);
         }
-        _particles.updateParticles(_renderer.getCamera().position(), dt, [](Particle& p, const float dt)
+
+        _particles.updateParticles(_renderer.getCamera().position(), dt, [](Particles::Particle& p, const float dt)
         {
-            p.pos += p.velocity * dt;
+            p.pos(p.pos() + p.velocity() * dt);
         });
     }
 
