@@ -37,7 +37,7 @@ public:
         }
         glfwMakeContextCurrent(_window);
         glfwSetWindowShouldClose(_window, GL_FALSE);
-        glfwSwapInterval(0); //disables vsync
+        //glfwSwapInterval(0); //disables vsync
 
         // GLAD tries to load the context set by GLFW
         if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))

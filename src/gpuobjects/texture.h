@@ -1,6 +1,5 @@
 #pragma once
 #define STB_IMAGE_IMPLEMENTATION
-#include <memory>
 #include <stbimage/stb_image.h>
 #include <utils/nocopy.h>
 
@@ -66,16 +65,21 @@ public:
         return *this;
     };
 
-    void use() const
+    void bind() const
     {
-        glActiveTexture(GL_TEXTURE0);
+        bind(0);
+    }
+
+    void bind(const GLuint offset) const
+    {
+        glActiveTexture(GL_TEXTURE0 + offset);
         glBindTexture(GL_TEXTURE_2D, _textureId);
     }
 
-    int width() const { return _width; }
-    int height() const { return _height; }
-    int nrChannels() const { return _nrChannels; }
-    GLuint textureId() const { return _textureId; }
+    [[nodiscard]] int width() const { return _width; }
+    [[nodiscard]] int height() const { return _height; }
+    [[nodiscard]] int nrChannels() const { return _nrChannels; }
+    [[nodiscard]] GLuint textureId() const { return _textureId; }
 
 private:
     GLuint _textureId = 0;

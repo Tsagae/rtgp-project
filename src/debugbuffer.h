@@ -3,9 +3,9 @@
 class DebugBuffer
 {
 public:
-    explicit DebugBuffer(const ApplyTextureShader& applyTextureShader, const Renderer& renderer, const int winWidth,
+    explicit DebugBuffer(const TexturedModel& texturedModel, const Renderer& renderer, const int winWidth,
                          const int winHeight)
-        : _applyTextureShader(applyTextureShader), _renderer(renderer)
+        : texturedModel(texturedModel), _renderer(renderer)
     {
         const GLfloat aspectRatio = static_cast<GLfloat>(winWidth) / static_cast<GLfloat>(winHeight);
 
@@ -56,7 +56,7 @@ public:
     void DisplayFramebufferTexture(const GLuint textureID) const
     {
         constexpr auto iMat4 = glm::mat4(1);
-        _applyTextureShader.use(iMat4, iMat4, iMat4);
+        texturedModel.draw(iMat4, iMat4, iMat4);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureID);
         glBindVertexArray(_vao);
@@ -67,7 +67,7 @@ public:
     }
 
 private:
-    const ApplyTextureShader& _applyTextureShader;
+    const TexturedModel& texturedModel;
     const Renderer& _renderer;
     GLuint _vao = 0;
     GLuint _vbo = 0;
