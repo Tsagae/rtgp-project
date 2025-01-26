@@ -3,9 +3,8 @@
 class DebugBuffer
 {
 public:
-    explicit DebugBuffer(const TexturedModel& texturedModel, const Renderer& renderer, const int winWidth,
-                         const int winHeight)
-        : texturedModel(texturedModel), _renderer(renderer)
+    explicit DebugBuffer(Renderer& renderer, const int winWidth, const int winHeight): renderer(renderer),
+        shader{renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag")}
     {
         const GLfloat aspectRatio = static_cast<GLfloat>(winWidth) / static_cast<GLfloat>(winHeight);
 
@@ -55,10 +54,20 @@ public:
 
     void DisplayFramebufferTexture(const GLuint textureID) const
     {
-        constexpr auto iMat4 = glm::mat4(1);
-        texturedModel.draw(iMat4, iMat4, iMat4);
+        shader.use();
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureID);
+
+        glm::mat4 m{1};
+
+        glUniformMatrix4fv(glGetUniformLocation(shader.program(), "projectionMatrix"), 1, GL_FALSE,
+                           value_ptr(m));
+        glUniformMatrix4fv(glGetUniformLocation(shader.program(), "viewMatrix"), 1, GL_FALSE,
+                           value_ptr(m));
+        glUniformMatrix4fv(glGetUniformLocation(shader.program(), "modelMatrix"), 1, GL_FALSE,
+                           value_ptr(m));
+
         glBindVertexArray(_vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
@@ -67,8 +76,8 @@ public:
     }
 
 private:
-    const TexturedModel& texturedModel;
-    const Renderer& _renderer;
+    Renderer& renderer;
+    const Shader& shader;
     GLuint _vao = 0;
     GLuint _vbo = 0;
     GLuint _ebo = 0;
