@@ -13,14 +13,24 @@ class Scene
 {
 public:
     explicit Scene(Renderer& renderer)
-        : renderer(renderer), re_cube(
+        : renderer(renderer),
+          sc_cube(scale(glm::mat4{1}, glm::vec3{3})),
+          sc_cube2(scale(glm::mat4{1}, glm::vec3{1.5})),
+          re_cube(
               renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/disappearing_mesh.frag"),
               renderer,
               std::vector<std::reference_wrapper<const Texture>>{
                   renderer.loadTexture("./assets/textures/UV_Grid_Sm.png"),
                   renderer.loadTexture("./assets/textures/noise1.jpg")
               },
-              renderer.loadModel("./assets/models/cube.obj"), sc_cube), sc_cube(glm::scale(glm::mat4{1}, glm::vec3{3})),
+              renderer.loadModel("./assets/models/cube.obj"), sc_cube),
+          re_cube2(
+              renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag"),
+              renderer,
+              std::vector<std::reference_wrapper<const Texture>>{
+                  renderer.loadTexture("./assets/textures/SoilCracked.png")
+              },
+              renderer.loadModel("./assets/models/cube.obj"), sc_cube2),
           fb(800, 600),
           debugBuffer(renderer, 1, 1),
           particles{
@@ -33,8 +43,11 @@ public:
 
     void init()
     {
-        sc_cube.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 6)) * rotate(
+        sc_cube.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 2)) * rotate(
             sc_cube.worldSpaceTransform, glm::radians(45.f), glm::vec3(0.0f, 1.0f, 0.0f));
+        sc_cube2.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 12)) * rotate(
+            sc_cube2.worldSpaceTransform, glm::radians(65.f), glm::vec3(0.0f, 1.0f, 0.0f));
+
         fb.bind();
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -46,7 +59,7 @@ public:
         {
             fb.bind();
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glClearColor(0.5, 0.5, 0.5, 1.0f);
             re_cube.drawRemovedFragments();
             FrameBuffer::unbind(renderer.screenWidth(), renderer.screenHeight());
@@ -56,6 +69,7 @@ public:
         p.emplace_back([&]
         {
             re_cube.draw();
+            re_cube2.draw();
         });
         p.emplace_back([&]
         {
@@ -89,8 +103,10 @@ public:
 
 private:
     Renderer& renderer;
-    DisappearingObject re_cube;
     SceneObject sc_cube;
+    SceneObject sc_cube2;
+    DisappearingObject re_cube;
+    DisappearingObject re_cube2;
     FrameBuffer fb;
     DebugBuffer debugBuffer;
     Particles particles;
