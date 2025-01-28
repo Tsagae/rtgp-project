@@ -21,7 +21,9 @@ public:
         glUniform1i(glGetUniformLocation(shader.program(), "texSampler"), 0);
         glUniform1i(glGetUniformLocation(shader.program(), "maskSampler"), 1);
 
-        glUniform1f(glGetUniformLocation(shader.program(), "threshold"), _threshold);
+        glUniform1f(glGetUniformLocation(shader.program(), "threshold"), curThreshold);
+        glUniform1f(glGetUniformLocation(shader.program(), "lowerBoundThreshold"), 0);
+        glUniform1i(glGetUniformLocation(shader.program(), "invert"), false);
         glUniformMatrix4fv(glGetUniformLocation(shader.program(), "projectionMatrix"), 1, GL_FALSE,
                            value_ptr(renderer.projectionMatrix()));
         glUniformMatrix4fv(glGetUniformLocation(shader.program(), "viewMatrix"), 1, GL_FALSE,
@@ -31,16 +33,39 @@ public:
         model.Draw();
     }
 
+    void drawRemovedFragments() const
+    {
+        shader.use();
+        bindTextures();
+
+        glUniform1i(glGetUniformLocation(shader.program(), "texSampler"), 0);
+        glUniform1i(glGetUniformLocation(shader.program(), "maskSampler"), 1);
+
+        glUniform1f(glGetUniformLocation(shader.program(), "threshold"), curThreshold);
+        glUniform1f(glGetUniformLocation(shader.program(), "lowerBoundThreshold"), prevThreshold);
+        glUniform1i(glGetUniformLocation(shader.program(), "invert"), true);
+        glUniformMatrix4fv(glGetUniformLocation(shader.program(), "projectionMatrix"), 1, GL_FALSE,
+                           value_ptr(renderer.projectionMatrix()));
+        glUniformMatrix4fv(glGetUniformLocation(shader.program(), "viewMatrix"), 1, GL_FALSE,
+                           value_ptr(renderer.viewMatrix()));
+        glUniformMatrix4fv(glGetUniformLocation(shader.program(), "modelMatrix"), 1, GL_FALSE,
+                           value_ptr(sceneObject.worldModelMatrix()));
+        model.Draw();
+    }
+
+
     [[nodiscard]] float threshold() const
     {
-        return _threshold;
+        return curThreshold;
     }
 
     void threshold(const float threshold)
     {
-        _threshold = glm::clamp(threshold, 0.0f, 1.0f);
+        prevThreshold = curThreshold;
+        curThreshold = glm::clamp(threshold, 0.0f, 1.0f);
     }
 
 private:
-    float _threshold{0};
+    float curThreshold{0};
+    float prevThreshold{0};
 };
