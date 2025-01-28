@@ -24,7 +24,7 @@ public:
             }
             else
             {
-                std::cout << "Panuic: Texture with " << _nrChannels << " channels" << std::endl;
+                std::cout << "Panic: Texture with " << _nrChannels << " channels" << std::endl;
             }
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
