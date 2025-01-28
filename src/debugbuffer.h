@@ -6,18 +6,17 @@ public:
     explicit DebugBuffer(Renderer& renderer, const int winWidth, const int winHeight): renderer(renderer),
         shader{renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag")}
     {
-        const GLfloat aspectRatio = static_cast<GLfloat>(winWidth) / static_cast<GLfloat>(winHeight);
+        //const GLfloat aspectRatio = static_cast<GLfloat>(winWidth) / static_cast<GLfloat>(winHeight);
 
         const GLfloat vertices[] = {
-            1, 1, 0.1f, 1, 0, // top right
-            1, 0, 0.1f, 1, 1, // bottom right
-            1 - aspectRatio, 0, 0.1f, 0, 1, // bottom left
-            1 - aspectRatio, 1, 0.1f, 0, 0 // top left
+            1, 1, 0.1f, 1, 1, // top right
+            0, 1, 0.1f, 0, 1, // top left
+            0, 0, 0.1f, 0, 0, // bottom left
+            1, 0, 0.1f, 1, 0, // bottom right
         };
         const GLuint indices[] = {
-            // note that we start from 0!
-            2, 1, 0, // first Triangle
-            2, 0, 3 // second Triangle
+            0, 1, 2, // first Triangle
+            0, 2, 3 // second Triangle
         };
         glGenVertexArrays(1, &_vao);
         glGenBuffers(1, &_vbo);
