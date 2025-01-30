@@ -1,6 +1,8 @@
 #pragma once
 #include <utils/nocopy.h>
 
+#include "pboreadbuffer.h"
+
 class FrameBuffer : NoCopy
 {
 public:
@@ -72,6 +74,16 @@ public:
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, width, height);
+    }
+
+    [[nodiscard]] PboReadBuffer createPboReadColorBuffer() const
+    {
+        return PboReadBuffer(_width, _height, 4, sizeof(GLubyte), GL_RGBA, GL_UNSIGNED_BYTE);
+    }
+
+    [[nodiscard]] PboReadBuffer createPboReadDepthBuffer() const
+    {
+        return PboReadBuffer(_width, _height, 1, sizeof(GLfloat), GL_DEPTH_COMPONENT,GL_FLOAT); //TODO: the depth buffer is probably 24 bits
     }
 
     [[nodiscard]] GLuint width() const { return _width; }

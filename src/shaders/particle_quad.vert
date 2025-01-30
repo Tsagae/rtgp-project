@@ -14,5 +14,5 @@ void main()
 {
     ParticleColor = color;
     float s = position_in_space.w;
-    gl_Position = projectionMatrix * viewMatrix * vec4(vertex_position*s + position_in_space.xyz, 1);
+    gl_Position = projectionMatrix * viewMatrix * vec4(vec3(vertex_position.x*s, vertex_position.y*s, vertex_position.z) + position_in_space.xyz, 1);
 }
