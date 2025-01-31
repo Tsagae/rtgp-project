@@ -30,6 +30,7 @@ Camera camera{};
 double cursorX, cursorY;
 bool keys[1024];
 bool first_mouse_input = true;
+bool pause = false;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -63,21 +64,24 @@ int main()
     float cumulative_dt = 0;
     while (!r.shouldClose())
     {
-        frames++;
-        r.computeDeltaTime();
-        const float dt = r.deltaTime();
-        cumulative_dt += dt;
-        if (cumulative_dt >= 1)
-        {
-            cumulative_dt = 0;
-            std::cout << "dt: " << dt * 1000 << "ms" << std::endl;
-            std::cout << "FPS: " << 1 / dt << std::endl;
-        }
-        input_handling();
-        camera.move(10, dt);
-        scene.mainLoop(dt);
-        r.render();
         glfwPollEvents();
+        input_handling();
+        if (!pause)
+        {
+            frames++;
+            r.computeDeltaTime();
+            const float dt = r.deltaTime();
+            cumulative_dt += dt;
+            if (cumulative_dt >= 1)
+            {
+                cumulative_dt = 0;
+                std::cout << "dt: " << dt * 1000 << "ms" << std::endl;
+                std::cout << "FPS: " << 1 / dt << std::endl;
+            }
+            camera.move(10, dt);
+            scene.mainLoop(dt);
+            r.render();
+        }
     }
 
     return 0;
@@ -102,6 +106,19 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             first_mouse_input = true;
             camera.setTransform(inverse(lookAt(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(10.0f, 0.0f, -7.0f),
                                                glm::vec3(0.0f, 1.0f, 0.0f))));
+        }
+
+        if (key == GLFW_KEY_P && action == GLFW_PRESS)
+        {
+            if (pause)
+            {
+                std::cout << "resuming" << std::endl;
+            }
+            if (!pause)
+            {
+                std::cout << "pausing" << std::endl;
+            }
+            pause = !pause;
         }
     };
 }

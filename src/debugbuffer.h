@@ -4,7 +4,7 @@ class DebugBuffer
 {
 public:
     explicit DebugBuffer(Renderer& renderer, const int winWidth, const int winHeight): renderer(renderer),
-        shader{renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag")}
+        shader{renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/debug_buffer.frag")}
     {
         //const GLfloat aspectRatio = static_cast<GLfloat>(winWidth) / static_cast<GLfloat>(winHeight);
 
