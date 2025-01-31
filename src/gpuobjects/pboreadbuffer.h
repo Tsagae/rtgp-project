@@ -6,7 +6,7 @@ class PboReadBuffer : NoCopy
 public:
     explicit PboReadBuffer(const GLuint width, const GLuint height, const GLubyte channels,
                            const GLubyte sizeOfChannel, const GLenum format, const GLenum pixelDataType):
-        NoCopy{}, _bufferSize{width * height * channels * sizeOfChannel}, _width{width}, _height{height},
+        NoCopy{}, _bufferSize{static_cast<GLsizeiptr>(width * height * channels * sizeOfChannel)}, _width{width}, _height{height},
         _channels{channels},
         _sizeOfChannel{sizeOfChannel}, _format{format}, _pixelDataType{pixelDataType}
     {
