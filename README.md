@@ -8,7 +8,7 @@ Install [build tools for visual studio](https://visualstudio.microsoft.com/downl
 - c++ cmake tools for windows
 - Windows 10 sdk
 
-[vcpkg setup](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started?pivots=shell-powershell)
+vcpkg setup
 ```
 git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg; .\bootstrap-vcpkg.bat -disableMetrics
