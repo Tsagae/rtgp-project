@@ -25,7 +25,7 @@ cmake --build .\build --config Release
 #### Dependencies
 - Ubuntu
 ```
-TODO
+git cmake g++ libglfw3-dev libassimp-dev libglm-dev
 ```
 - Fedora
 ```
