@@ -3,7 +3,7 @@
 ### Windows
 Install git and cmake
 
-Install [build tools for visual studio](https://visualstudio.microsoft.com/downloads/#visual-studio-team-services-cli) and check optional during installation:
+Install [build tools for visual studio](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) and check optional during installation:
 - msvc v143
 - c++ cmake tools for windows
 - Windows 10 sdk
