@@ -68,6 +68,8 @@ public:
                            value_ptr(m));
 
         glBindVertexArray(_vao);
+
+        shader.validateProgram();
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         glBindVertexArray(0);

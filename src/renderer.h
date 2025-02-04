@@ -57,7 +57,7 @@ public:
         int width, height;
         glfwGetFramebufferSize(_window, &width, &height);
         glViewport(0, 0, width, height);
-        glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        //glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

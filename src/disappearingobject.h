@@ -30,6 +30,7 @@ public:
                            value_ptr(renderer.viewMatrix()));
         glUniformMatrix4fv(glGetUniformLocation(shader.program(), "modelMatrix"), 1, GL_FALSE,
                            value_ptr(sceneObject.worldModelMatrix()));
+        shader.validateProgram();
         model.Draw();
     }
 
@@ -50,6 +51,7 @@ public:
                            value_ptr(renderer.viewMatrix()));
         glUniformMatrix4fv(glGetUniformLocation(shader.program(), "modelMatrix"), 1, GL_FALSE,
                            value_ptr(sceneObject.worldModelMatrix()));
+        shader.validateProgram();
         model.Draw();
     }
 

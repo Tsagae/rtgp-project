@@ -74,6 +74,20 @@ public:
 
     GLuint program() const { return this->_program; }
 
+    void validateProgram() const
+    {
+        glValidateProgram(this->_program);
+        GLint isValid;
+        glGetProgramiv(this->_program, GL_VALIDATE_STATUS, &isValid);
+        if (isValid == GL_FALSE)
+        {
+            GLchar infoLog[512];
+            glGetProgramInfoLog(this->_program, 512, nullptr, infoLog);
+            std::cerr << "Program validation failed for program " << this->program() << ": " << infoLog << std::endl;
+            throw std::runtime_error("Program validation failed");
+        }
+    }
+
 private:
     GLuint _program;
 

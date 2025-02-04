@@ -201,6 +201,7 @@ public:
                            value_ptr(renderer.getCamera().orientation()));
 
         glBindVertexArray(vao);
+        shader.validateProgram();
         glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, livingParticles);
         glBindVertexArray(0);
     }
