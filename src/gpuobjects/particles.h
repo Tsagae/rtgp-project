@@ -185,7 +185,8 @@ public:
 
     void drawParticles()
     {
-        std::sort(&particles[0], &particles[livingParticles]);
+        const unsigned long index = static_cast<unsigned long>(std::min(static_cast<unsigned long>(livingParticles), static_cast<unsigned long>(particles.size()-1)));
+        std::sort(&particles[0], &particles[index]);
 
         glBindBuffer(GL_ARRAY_BUFFER, particles_data_buffer);
         glBufferData(GL_ARRAY_BUFFER, maxParticles * sizeof(Particle), nullptr, GL_STREAM_DRAW);
