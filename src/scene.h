@@ -14,23 +14,15 @@ class Scene
 public:
     explicit Scene(Renderer& renderer)
         : renderer(renderer),
-          sc_cube(scale(glm::mat4{1}, glm::vec3{3})),
-          sc_cube2(scale(glm::mat4{1}, glm::vec3{1.5})),
-          re_cube(
+          sc_disappearingModel(scale(glm::mat4{1}, glm::vec3{2})),
+          re_disappearingModel(
               renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/disappearing_mesh.frag"),
               renderer,
               std::vector<std::reference_wrapper<const Texture>>{
                   renderer.loadTexture("./assets/textures/UV_Grid_Sm.png"),
                   renderer.loadTexture("./assets/textures/noise1.jpg")
               },
-              renderer.loadModel("./assets/models/cube.obj"), sc_cube),
-          re_cube2(
-              renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/apply_texture.frag"),
-              renderer,
-              std::vector<std::reference_wrapper<const Texture>>{
-                  renderer.loadTexture("./assets/textures/SoilCracked.png")
-              },
-              renderer.loadModel("./assets/models/cube.obj"), sc_cube2),
+              renderer.loadModel("./assets/models/bunny_lp.obj"), sc_disappearingModel),
           disappearingFragmentsFb(800, 600),
           pboColorRBuf{disappearingFragmentsFb.createPboReadColorBuffer()},
           debugBuffer(renderer, 1, 1),
@@ -45,10 +37,8 @@ public:
 
     void init()
     {
-        sc_cube.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 2)) * rotate(
-            sc_cube.worldSpaceTransform, glm::radians(45.f), glm::vec3(0.0f, 1.0f, 0.0f));
-        sc_cube2.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 12)) * rotate(
-            sc_cube2.worldSpaceTransform, glm::radians(65.f), glm::vec3(0.0f, 1.0f, 0.0f));
+        sc_disappearingModel.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 2)) * rotate(
+            sc_disappearingModel.worldSpaceTransform, glm::radians(45.f), glm::vec3(0.0f, 1.0f, 0.0f));
 
         disappearingFragmentsFb.bind();
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -63,14 +53,14 @@ public:
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glClearColor(0.5, 0.5, 0.5, 1.0f);
-            re_cube.drawRemovedFragments();
+            re_disappearingModel.drawRemovedFragments();
             //re_cube.draw();
             FrameBuffer::unbind(renderer.screenWidth(), renderer.screenHeight());
             debugBuffer.DisplayFramebufferTexture(disappearingFragmentsFb.depthTextureId());
         });
         p.emplace_back([&]
         {
-            re_cube.draw();
+            re_disappearingModel.draw();
             //re_cube2.draw();
         });
         p.emplace_back([&]
@@ -106,17 +96,6 @@ public:
                                                  static_cast<GLfloat>(pixel.z) / 255.f,
                                                  1
                                              }, 0.1);
-                    /*
-                    particles.spawnParticles(1, glm::vec3{0, 5, -30},
-                                             glm::vec3{randMinusOneOne(), randZeroOne() + 0.2, randMinusOneOne()},
-                                             randZeroOne() * 5 + 5,
-                                             glm::vec4{
-                                                 0,
-                                                 1,
-                                                 0,
-                                                 1
-                                             }, 0.5);
-                */
                 }
             }
 
@@ -134,20 +113,7 @@ public:
 
     void mainLoop(const float dt)
     {
-        const auto deadParticles = particles.getDeadParticles();
-        re_cube.threshold(re_cube.threshold() + 0.1f * dt);
-
-        /*
-        for (auto i = 0; i < deadParticles / 10; i++)
-        {
-            particles.spawnParticles(10, glm::vec3{randMinusOneOne() * 10, randMinusOneOne() * 10, -10},
-                                     glm::vec3{randMinusOneOne(), randZeroOne() + 0.2, randMinusOneOne()},
-                                     randZeroOne() * 5 + 5, glm::vec4{
-                                         randZeroOne() / 2 + 0.25, randZeroOne() / 2 + 0.25, randZeroOne() / 2 + 0.25,
-                                         0.30
-                                     }, (randZeroOne() + 1) / 5);
-        }
-        */
+        re_disappearingModel.threshold(re_disappearingModel.threshold() + 0.1f * dt);
 
         particles.updateParticles(renderer.getCamera().position(), dt,
                                   [](Particles::Particle& p, const float delta_time)
@@ -158,10 +124,8 @@ public:
 
 private:
     Renderer& renderer;
-    SceneObject sc_cube;
-    SceneObject sc_cube2;
-    DisappearingObject re_cube;
-    DisappearingObject re_cube2;
+    SceneObject sc_disappearingModel;
+    DisappearingObject re_disappearingModel;
     FrameBuffer disappearingFragmentsFb;
     PboReadBuffer pboColorRBuf;
     DebugBuffer debugBuffer;
