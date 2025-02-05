@@ -4,3 +4,7 @@ cmake-build-debug
 cmake-build-release
 RTGP-Project
 vgcore.*
+*.dll
+*.exe
+*.ilk
+*.pdb
