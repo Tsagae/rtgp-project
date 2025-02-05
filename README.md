@@ -8,14 +8,10 @@ Install [build tools for visual studio](https://visualstudio.microsoft.com/downl
 - c++ cmake tools for windows
 - Windows 10 sdk
 
-vcpkg setup
+open cmd with "Launch" in visual studio build tools 2022 or from start "Developer powershell for VS 2022" and in the root folder of the project run:
 ```
 git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg; .\bootstrap-vcpkg.bat -disableMetrics
-```
-
-open cmd with "Launch" in visual studio build tools 2022 or from start "Developer powershell for VS 2022" and in the root folder of the project run:
-```
 cmake --preset=default
 cmake --build .\build --config Release
 ```
