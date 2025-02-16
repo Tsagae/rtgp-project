@@ -35,10 +35,13 @@ double cursorX, cursorY;
 bool keys[1024];
 bool first_mouse_input = true;
 bool pause = false;
+bool menu_on = true;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void input_handling();
+
+void menu_window(GLFWwindow* window);
 
 int main()
 {
@@ -85,7 +88,11 @@ int main()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        ImGui::ShowDemoWindow(); // Show demo window! :)
+        //ImGui::ShowDemoWindow(); // Show demo window! :)
+        if (menu_on)
+        {
+            menu_window(r.getGlfwWindow());
+        }
         if (!pause)
         {
             frames++;
@@ -112,6 +119,27 @@ int main()
     return 0;
 }
 
+void menu_window(GLFWwindow* window)
+{
+    static float f;
+    static int counter;
+    ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
+
+    ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
+
+    ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
+
+    if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
+        counter++;
+    ImGui::SameLine();
+    ImGui::Text("counter = %d", counter);
+
+    if (ImGui::Button("Quit"))
+        glfwSetWindowShouldClose(window, GL_TRUE);
+    //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+    ImGui::End();
+}
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
     {
@@ -123,7 +151,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         {
             std::cout << "pressing esc" << std::endl;
-            glfwSetWindowShouldClose(window, GL_TRUE);
+            menu_on = !menu_on;
         }
 
         if (key == GLFW_KEY_R && action == GLFW_PRESS)
@@ -162,7 +190,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     cursorX = xpos;
     cursorY = ypos;
 
-    camera.mouseRotate(dx, dy);
+    camera.mouseRotate(dx, dy); //TODO: disable this when menu is on
 
     ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
 }
