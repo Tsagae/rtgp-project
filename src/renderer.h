@@ -135,6 +135,10 @@ public:
         {
             f();
         }
+    }
+
+    void swapBuffers() const
+    {
         glfwSwapBuffers(_window);
     }
 

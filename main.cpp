@@ -26,6 +26,10 @@
 #include <utils/random_utils.h>
 #include "camera.h"
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 Camera camera{};
 double cursorX, cursorY;
 bool keys[1024];
@@ -45,6 +49,17 @@ int main()
     {
         return init_res;
     }
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(r.getGlfwWindow(), true);
+    ImGui_ImplOpenGL3_Init();
+
+
     r.setProjectionMatrix(glm::perspective(
         45.0f, static_cast<float>(r.screenWidth()) / static_cast<float>(r.screenHeight()),
         0.1f, 10000.0f));
@@ -66,6 +81,11 @@ int main()
     {
         glfwPollEvents();
         input_handling();
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::ShowDemoWindow(); // Show demo window! :)
         if (!pause)
         {
             frames++;
@@ -82,8 +102,13 @@ int main()
             scene.mainLoop(dt);
             r.render();
         }
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        r.swapBuffers();
     }
-
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     return 0;
 }
 
@@ -138,6 +163,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     cursorY = ypos;
 
     camera.mouseRotate(dx, dy);
+
+    ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
 }
 
 void input_handling()
