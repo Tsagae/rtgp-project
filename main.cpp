@@ -25,27 +25,20 @@
 #include "scene.h"
 #include <utils/random_utils.h>
 #include "camera.h"
+#include "input.h"
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-Camera camera{};
-double cursorX, cursorY;
-bool keys[1024];
-bool first_mouse_input = true;
-bool pause = false;
-bool menu_on = true;
+static bool reset_scene = false;
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void input_handling();
-
-void menu_window(GLFWwindow* window);
+void menu_window(GLFWwindow* window, ImGuiIO& io);
 
 int main()
 {
     randInit();
+    Camera camera{};
     Renderer r(camera);
     auto init_res = r.init();
     if (init_res != 0)
@@ -61,7 +54,6 @@ int main()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(r.getGlfwWindow(), true);
     ImGui_ImplOpenGL3_Init();
-
 
     r.setProjectionMatrix(glm::perspective(
         45.0f, static_cast<float>(r.screenWidth()) / static_cast<float>(r.screenHeight()),
@@ -82,16 +74,37 @@ int main()
     float cumulative_dt = 0;
     while (!r.shouldClose())
     {
+        if (reset_scene)
+        {
+            scene.~Scene();
+            new(&scene) Scene(r);
+            scene.init();
+            reset_scene = false;
+        }
+
         glfwPollEvents();
-        input_handling();
+        keypresses_handling();
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        //ImGui::ShowDemoWindow(); // Show demo window! :)
         if (menu_on)
         {
-            menu_window(r.getGlfwWindow());
+            menu_window(r.getGlfwWindow(), io);
+            ImGui_ImplGlfw_CursorPosCallback(r.getGlfwWindow(), mouseX, mouseY);
+        }
+        else
+        {
+            if (mouse_updated)
+            {
+                camera.mouseRotate(mouseDx, mouseDy);
+                mouse_updated = false;
+            }
+            for (const auto& dir : buffered_directions)
+            {
+                camera.addDirection(dir);
+            }
+            buffered_directions.clear();
         }
         if (!pause)
         {
@@ -119,106 +132,20 @@ int main()
     return 0;
 }
 
-void menu_window(GLFWwindow* window)
+void menu_window(GLFWwindow* window, ImGuiIO& io)
 {
     static float f;
-    static int counter;
-    ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
+    ImGui::Begin("Menu"); // Create a window called "Hello, world!" and append into it.
 
     ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
 
     ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
 
-    if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
-        counter++;
-    ImGui::SameLine();
-    ImGui::Text("counter = %d", counter);
+    if (ImGui::Button("Reset scene"))
+        reset_scene = true;
 
     if (ImGui::Button("Quit"))
         glfwSetWindowShouldClose(window, GL_TRUE);
-    //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
     ImGui::End();
-}
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
-{
-    {
-        if (action == GLFW_PRESS)
-            keys[key] = true;
-        else if (action == GLFW_RELEASE)
-            keys[key] = false;
-
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        {
-            std::cout << "pressing esc" << std::endl;
-            menu_on = !menu_on;
-        }
-
-        if (key == GLFW_KEY_R && action == GLFW_PRESS)
-        {
-            first_mouse_input = true;
-            camera.setTransform(inverse(lookAt(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(10.0f, 0.0f, -7.0f),
-                                               glm::vec3(0.0f, 1.0f, 0.0f))));
-        }
-
-        if (key == GLFW_KEY_P && action == GLFW_PRESS)
-        {
-            if (pause)
-            {
-                std::cout << "resuming" << std::endl;
-            }
-            if (!pause)
-            {
-                std::cout << "pausing" << std::endl;
-            }
-            pause = !pause;
-        }
-    };
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    if (first_mouse_input)
-    {
-        cursorX = xpos;
-        cursorY = ypos;
-        first_mouse_input = false;
-    }
-    double dx = xpos - cursorX;
-    double dy = ypos - cursorY;
-
-    cursorX = xpos;
-    cursorY = ypos;
-
-    camera.mouseRotate(dx, dy); //TODO: disable this when menu is on
-
-    ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
-}
-
-void input_handling()
-{
-    if (keys[GLFW_KEY_W])
-    {
-        camera.addDirection(Direction::FORWARD);
-    }
-    if (keys[GLFW_KEY_A])
-    {
-        camera.addDirection(Direction::LEFT);
-    }
-    if (keys[GLFW_KEY_S])
-    {
-        camera.addDirection(Direction::BACKWARDS);
-    }
-    if (keys[GLFW_KEY_D])
-    {
-        camera.addDirection(Direction::RIGHT);
-    }
-    if (keys[GLFW_KEY_SPACE])
-    {
-        camera.addDirection(Direction::UP);
-    }
-    if (keys[GLFW_KEY_LEFT_SHIFT])
-    {
-        camera.addDirection(Direction::DOWN);
-    }
 }

@@ -13,7 +13,7 @@ public:
 
     void addDirection(const Direction dir)
     {
-        movementQueue.emplace_back(dir);
+        movementQueue.emplace_back(dir); //TODO: can be optimized with a bitmask
     }
 
     void move(const float magnitude, const float dt)

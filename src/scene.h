@@ -35,6 +35,8 @@ public:
     {
     }
 
+    //Scene& Scene::operator=(const Scene&) = default;
+
     void init()
     {
         sc_disappearingModel.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 2)) * rotate(
@@ -80,7 +82,7 @@ public:
                         (disappearingFragmentsFb.width())) - 1;
                     const auto y = 2 * (static_cast<GLfloat>(i / disappearingFragmentsFb.width()) / static_cast<GLfloat>
                         (disappearingFragmentsFb.height())) - 1;
-                    const auto pixelNDC = glm::vec4{x, y, depth[i]*depth[i], 1};
+                    const auto pixelNDC = glm::vec4{x, y, depth[i] * depth[i], 1};
                     //auto pixelNDC = glm::vec4{1, 1, 0.9, 1};
                     auto worldSpacePos = glm::inverse(renderer.projectionMatrix() * renderer.viewMatrix()) * pixelNDC;
                     worldSpacePos /= worldSpacePos.w;
