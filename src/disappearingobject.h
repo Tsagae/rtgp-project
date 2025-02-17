@@ -15,6 +15,10 @@ public:
 
     void draw() const
     {
+        if (curThreshold >= 1)
+        {
+            return;
+        }
         shader.use();
         bindTextures();
 
