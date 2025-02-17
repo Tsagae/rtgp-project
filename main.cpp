@@ -30,13 +30,21 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <filesystem>
 
 static bool reset_scene = false;
+static string selected_model = "./assets/models/bunny_lp.obj";
+static std::vector<string> model_files{};
 
 void menu_window(GLFWwindow* window, ImGuiIO& io);
 
 int main()
 {
+    for (const auto & entry : std::filesystem::directory_iterator("./assets/models"))
+    {
+        model_files.push_back(entry.path().string());
+    }
+
     randInit();
     Camera camera{};
     Renderer r(camera);
@@ -62,7 +70,7 @@ int main()
                                        glm::vec3(0.0f, 1.0f, 0.0f))));
     std::cout << "init done" << std::endl;
 
-    auto scene = Scene(r);
+    auto scene = Scene(r, selected_model);
     scene.init();
 
     glfwSetCursorPos(r.getGlfwWindow(), static_cast<float>(r.screenWidth()) / 2,
@@ -77,7 +85,7 @@ int main()
         if (reset_scene)
         {
             scene.~Scene();
-            new(&scene) Scene(r);
+            new(&scene) Scene(r, selected_model);
             scene.init();
             reset_scene = false;
         }
@@ -140,6 +148,27 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
     ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
 
     ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
+
+    static int item_selected_idx = 0;
+    const char* combo_preview_value = model_files[item_selected_idx].c_str();
+    if (ImGui::BeginCombo("models", combo_preview_value))
+    {
+        for (int i = 0; i < model_files.size(); i++)
+        {
+            const bool is_selected = (item_selected_idx == i);
+            if (ImGui::Selectable(model_files[i].c_str(), is_selected))
+            {
+                item_selected_idx = i;
+                selected_model = model_files[item_selected_idx];
+                reset_scene = true;
+            }
+
+            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
 
     if (ImGui::Button("Reset scene"))
         reset_scene = true;

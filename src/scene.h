@@ -12,7 +12,7 @@
 class Scene
 {
 public:
-    explicit Scene(Renderer& renderer)
+    explicit Scene(Renderer& renderer, const string& disappearing_model)
         : renderer(renderer),
           sc_disappearingModel(scale(glm::mat4{1}, glm::vec3{2})),
           re_disappearingModel(
@@ -22,7 +22,7 @@ public:
                   renderer.loadTexture("./assets/textures/UV_Grid_Sm.png"),
                   renderer.loadTexture("./assets/textures/noise1.jpg")
               },
-              renderer.loadModel("./assets/models/bunny_lp.obj"), sc_disappearingModel),
+              renderer.loadModel(disappearing_model), sc_disappearingModel),
           disappearingFragmentsFb(800, 600),
           pboColorRBuf{disappearingFragmentsFb.createPboReadColorBuffer()},
           debugBuffer(renderer, 1, 1),
