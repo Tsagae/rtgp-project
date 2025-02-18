@@ -23,6 +23,10 @@ inline void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         {
             std::cout << "pressing esc" << std::endl;
             menu_on = !menu_on;
+            if (menu_on)
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            else
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
 
         if (key == GLFW_KEY_R && action == GLFW_PRESS)
