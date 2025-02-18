@@ -9,6 +9,7 @@ static bool pause = false;
 static bool menu_on = true;
 static bool mouse_updated = false;
 static bool reset_scene = false;
+static float mouse_sensitivity = 0.1f;
 
 inline void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {

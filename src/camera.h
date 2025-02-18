@@ -47,8 +47,9 @@ public:
         pitch += -dy * sensitivity;
         pitch = glm::clamp(pitch, -89.f, +89.f);
 
-        transform = translate(glm::mat4{1}, position()) *
-            glm::yawPitchRoll(glm::radians(yaw), glm::radians(pitch), 0.f);
+        const auto position = transform[3];
+        this->transform = glm::yawPitchRoll(glm::radians(yaw), glm::radians(pitch), 0.f);
+        this->transform[3] = position;
     }
 
     [[nodiscard]] glm::vec3 cameraForward() const
@@ -71,14 +72,11 @@ public:
         return transform;
     }
 
-    void setTransform(const glm::mat4& mat)
+    void setTransform(const glm::mat4& transform)
     {
-        //TODO: computation of pitch and yaw is incorrect and redundant with the transform. Keep only pitch, yaw and position and compute transform on the fly
-        transform = mat;
-        const auto cam_orientation = orientation();
-        yaw = glm::degrees(angle(getVector(Direction::FORWARD), -cam_orientation[2]));
-        pitch = glm::degrees(angle(getVector(Direction::UP), cam_orientation[1]));
-    };
+        this->transform = transform;
+    }
+
 
 private:
     glm::mat4 transform{};

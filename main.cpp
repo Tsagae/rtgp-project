@@ -39,6 +39,7 @@ static string selected_texture = "./assets/textures/UV_Grid_Sm.png";
 static string selected_noise_texture = "./assets/textures/noise1.jpg";
 static std::vector<string> texture_files{};
 
+static float dt_multiplier = 1;
 
 void menu_window(GLFWwindow* window, ImGuiIO& io);
 
@@ -100,6 +101,7 @@ int main()
             scene.init();
             reset_scene = false;
         }
+        camera.sensitivity = mouse_sensitivity;
 
         glfwPollEvents();
         keypresses_handling();
@@ -138,7 +140,7 @@ int main()
         camera.move(10, dt);
         if (!pause)
         {
-            scene.mainLoop(dt);
+            scene.mainLoop(dt*dt_multiplier);
         }
         r.render();
         ImGui::Render();
@@ -153,13 +155,13 @@ int main()
 
 void menu_window(GLFWwindow* window, ImGuiIO& io)
 {
-    static float f;
     ImGui::Begin("Menu"); // Create a window called "Hello, world!" and append into it.
 
     ImGui::Text("P pauses and resumes the simulation."); // Display some text (you can use a format strings too)
     ImGui::Text("R resets the simulation."); // Display some text (you can use a format strings too)
 
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
+    ImGui::SliderFloat("dt_multiplier", &dt_multiplier, 0.0f, 5.0f); // Edit 1 float using a slider from 0.0f to 1.0f
+    ImGui::SliderFloat("mouse sensitivity", &mouse_sensitivity, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
 
     // Model selection
     static int selected_model_idx = 0;
