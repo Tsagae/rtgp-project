@@ -12,15 +12,15 @@
 class Scene
 {
 public:
-    explicit Scene(Renderer& renderer, const string& disappearing_model)
+    explicit Scene(Renderer& renderer, const string& disappearing_model, const string& texture, const string& noise_texture)
         : renderer(renderer),
           sc_disappearingModel(scale(glm::mat4{1}, glm::vec3{2})),
           re_disappearingModel(
               renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/disappearing_mesh.frag"),
               renderer,
               std::vector<std::reference_wrapper<const Texture>>{
-                  renderer.loadTexture("./assets/textures/UV_Grid_Sm.png"),
-                  renderer.loadTexture("./assets/textures/noise1.jpg")
+                  renderer.loadTexture(texture),
+                  renderer.loadTexture(noise_texture)
               },
               renderer.loadModel(disappearing_model), sc_disappearingModel),
           disappearingFragmentsFb(800, 600),

@@ -36,6 +36,11 @@ static bool reset_scene = false;
 static string selected_model = "./assets/models/bunny_lp.obj";
 static std::vector<string> model_files{};
 
+static string selected_texture = "./assets/textures/UV_Grid_Sm.png";
+static string selected_noise_texture = "./assets/textures/noise1.jpg";
+static std::vector<string> texture_files{};
+
+
 void menu_window(GLFWwindow* window, ImGuiIO& io);
 
 int main()
@@ -44,6 +49,11 @@ int main()
     {
         model_files.push_back(entry.path().string());
     }
+    for (const auto & entry : std::filesystem::directory_iterator("./assets/textures"))
+    {
+        texture_files.push_back(entry.path().string());
+    }
+
 
     randInit();
     Camera camera{};
@@ -70,7 +80,7 @@ int main()
                                        glm::vec3(0.0f, 1.0f, 0.0f))));
     std::cout << "init done" << std::endl;
 
-    auto scene = Scene(r, selected_model);
+    auto scene = Scene(r, selected_model, selected_texture, selected_noise_texture);
     scene.init();
 
     glfwSetCursorPos(r.getGlfwWindow(), static_cast<float>(r.screenWidth()) / 2,
@@ -84,8 +94,9 @@ int main()
     {
         if (reset_scene)
         {
+            std::cout << "resetting scene with model: " << selected_model << " texture: " << selected_texture << std::endl;
             scene.~Scene();
-            new(&scene) Scene(r, selected_model);
+            new(&scene) Scene(r, selected_model, selected_texture, selected_noise_texture);
             scene.init();
             reset_scene = false;
         }
@@ -149,17 +160,17 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
 
     ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
 
-    static int item_selected_idx = 0;
-    const char* combo_preview_value = model_files[item_selected_idx].c_str();
-    if (ImGui::BeginCombo("models", combo_preview_value))
+    // Model selection
+    static int selected_model_idx = 0;
+    if (ImGui::BeginCombo("model", selected_model.c_str()))
     {
         for (int i = 0; i < model_files.size(); i++)
         {
-            const bool is_selected = (item_selected_idx == i);
+            const bool is_selected = (selected_model_idx == i);
             if (ImGui::Selectable(model_files[i].c_str(), is_selected))
             {
-                item_selected_idx = i;
-                selected_model = model_files[item_selected_idx];
+                selected_model_idx = i;
+                selected_model = model_files[selected_model_idx];
                 reset_scene = true;
             }
 
@@ -169,6 +180,47 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
         }
         ImGui::EndCombo();
     }
+
+    // Texture selection
+    static int selected_texure_idx = 0;
+    if (ImGui::BeginCombo("texture", selected_texture.c_str()))
+    {
+        for (int i = 0; i < texture_files.size(); i++)
+        {
+            const bool is_selected = (selected_texure_idx == i);
+            if (ImGui::Selectable(texture_files[i].c_str(), is_selected))
+            {
+                selected_texure_idx = i;
+                selected_texture = texture_files[selected_texure_idx];
+                reset_scene = true;
+            }
+
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+
+    // Texture selection
+    static int selected_noise_texture_idx = 0;
+    if (ImGui::BeginCombo("noise texture", selected_noise_texture.c_str()))
+    {
+        for (int i = 0; i < texture_files.size(); i++)
+        {
+            const bool is_selected = (selected_noise_texture_idx == i);
+            if (ImGui::Selectable(texture_files[i].c_str(), is_selected))
+            {
+                selected_noise_texture_idx = i;
+                selected_noise_texture = texture_files[selected_noise_texture_idx];
+                reset_scene = true;
+            }
+
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+
 
     if (ImGui::Button("Reset scene"))
         reset_scene = true;
