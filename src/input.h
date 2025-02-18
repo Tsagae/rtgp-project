@@ -8,6 +8,7 @@ static bool first_mouse_input = true;
 static bool pause = false;
 static bool menu_on = true;
 static bool mouse_updated = false;
+static bool reset_scene = false;
 
 inline void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
@@ -26,6 +27,7 @@ inline void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         if (key == GLFW_KEY_R && action == GLFW_PRESS)
         {
             first_mouse_input = true;
+            reset_scene = true;
             //camera.setTransform(inverse(lookAt(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(10.0f, 0.0f, -7.0f),
             //                                  glm::vec3(0.0f, 1.0f, 0.0f))));
         }

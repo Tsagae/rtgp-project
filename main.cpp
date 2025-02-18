@@ -32,7 +32,6 @@
 #include <imgui_impl_opengl3.h>
 #include <filesystem>
 
-static bool reset_scene = false;
 static string selected_model = "./assets/models/bunny_lp.obj";
 static std::vector<string> model_files{};
 
@@ -45,11 +44,11 @@ void menu_window(GLFWwindow* window, ImGuiIO& io);
 
 int main()
 {
-    for (const auto & entry : std::filesystem::directory_iterator("./assets/models"))
+    for (const auto& entry : std::filesystem::directory_iterator("./assets/models"))
     {
         model_files.push_back(entry.path().string());
     }
-    for (const auto & entry : std::filesystem::directory_iterator("./assets/textures"))
+    for (const auto& entry : std::filesystem::directory_iterator("./assets/textures"))
     {
         texture_files.push_back(entry.path().string());
     }
@@ -94,7 +93,8 @@ int main()
     {
         if (reset_scene)
         {
-            std::cout << "resetting scene with model: " << selected_model << " texture: " << selected_texture << std::endl;
+            std::cout << "resetting scene with model: " << selected_model << " texture: " << selected_texture <<
+                std::endl;
             scene.~Scene();
             new(&scene) Scene(r, selected_model, selected_texture, selected_noise_texture);
             scene.init();
@@ -125,22 +125,22 @@ int main()
             }
             buffered_directions.clear();
         }
+        frames++;
+        r.computeDeltaTime();
+        const float dt = r.deltaTime();
+        cumulative_dt += dt;
+        if (cumulative_dt >= 1)
+        {
+            cumulative_dt = 0;
+            std::cout << "dt: " << dt * 1000 << "ms" << std::endl;
+            std::cout << "FPS: " << 1 / dt << std::endl;
+        }
+        camera.move(10, dt);
         if (!pause)
         {
-            frames++;
-            r.computeDeltaTime();
-            const float dt = r.deltaTime();
-            cumulative_dt += dt;
-            if (cumulative_dt >= 1)
-            {
-                cumulative_dt = 0;
-                std::cout << "dt: " << dt * 1000 << "ms" << std::endl;
-                std::cout << "FPS: " << 1 / dt << std::endl;
-            }
-            camera.move(10, dt);
             scene.mainLoop(dt);
-            r.render();
         }
+        r.render();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         r.swapBuffers();
@@ -156,7 +156,8 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
     static float f;
     ImGui::Begin("Menu"); // Create a window called "Hello, world!" and append into it.
 
-    ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
+    ImGui::Text("P pauses and resumes the simulation."); // Display some text (you can use a format strings too)
+    ImGui::Text("R resets the simulation."); // Display some text (you can use a format strings too)
 
     ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
 
