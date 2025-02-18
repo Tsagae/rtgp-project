@@ -40,6 +40,7 @@ static string selected_noise_texture = "./assets/textures/noise1.jpg";
 static std::vector<string> texture_files{};
 
 static float dt_multiplier = 1;
+static bool show_debug_buffer = false;
 
 void menu_window(GLFWwindow* window, ImGuiIO& io);
 
@@ -102,6 +103,7 @@ int main()
             reset_scene = false;
         }
         camera.sensitivity = mouse_sensitivity;
+        scene.show_debug_buffer = show_debug_buffer;
 
         glfwPollEvents();
         keypresses_handling();
@@ -223,7 +225,9 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
         }
         ImGui::EndCombo();
     }
+    ImGui::Checkbox("show debug buffer", &show_debug_buffer);
 
+    ImGui::Checkbox("pause", &pause);
 
     if (ImGui::Button("Reset scene"))
         reset_scene = true;

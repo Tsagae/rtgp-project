@@ -12,7 +12,10 @@
 class Scene
 {
 public:
-    explicit Scene(Renderer& renderer, const string& disappearing_model, const string& texture, const string& noise_texture)
+    bool show_debug_buffer{false};
+
+    explicit Scene(Renderer& renderer, const string& disappearing_model, const string& texture,
+                   const string& noise_texture)
         : renderer(renderer),
           sc_disappearingModel(scale(glm::mat4{1}, glm::vec3{2})),
           re_disappearingModel(
@@ -58,7 +61,8 @@ public:
             re_disappearingModel.drawRemovedFragments();
             //re_cube.draw();
             FrameBuffer::unbind(renderer.screenWidth(), renderer.screenHeight());
-            debugBuffer.DisplayFramebufferTexture(disappearingFragmentsFb.depthTextureId());
+            if (show_debug_buffer)
+                debugBuffer.DisplayFramebufferTexture(disappearingFragmentsFb.depthTextureId());
         });
         p.emplace_back([&]
         {
