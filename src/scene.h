@@ -13,6 +13,21 @@ class Scene
 {
 public:
     bool show_debug_buffer{false};
+    std::function<void(Particles::Particle&, float dt)> particles_update_func =
+        [](Particles::Particle& p, const float delta_time)
+    {
+        p.pos(p.pos() + p.velocity() * delta_time);
+    };
+    std::function<glm::vec3()> start_velocity_func =
+        []
+    {
+        return glm::vec3{randMinusOneOne(), randZeroOne() + 0.2, randMinusOneOne()};
+    };
+    std::function<float()> start_life_func =
+        []
+    {
+        return randZeroOne() * 5 + 5;
+    };
 
     explicit Scene(Renderer& renderer, const string& disappearing_model, const string& texture,
                    const string& noise_texture)
@@ -94,8 +109,8 @@ public:
                     //std::cout << "pixelNDC: " << pixelNDC.x << " " << pixelNDC.y << " " << pixelNDC.z << std::endl;
                     //std::cout << "WorldSpacePos: " << worldSpacePos.x << " " << worldSpacePos.y << " " << worldSpacePos.z << std::endl;
                     particles.spawnParticles(1, glm::vec3{worldSpacePos.x, worldSpacePos.y, worldSpacePos.z},
-                                             glm::vec3{randMinusOneOne(), randZeroOne() + 0.2, randMinusOneOne()},
-                                             randZeroOne() * 5 + 5,
+                                             start_velocity_func(),
+                                             start_life_func(),
                                              glm::vec4{
                                                  static_cast<GLfloat>(pixel.x) / 255.f,
                                                  static_cast<GLfloat>(pixel.y) / 255.f,
@@ -121,11 +136,7 @@ public:
     {
         re_disappearingModel.threshold(re_disappearingModel.threshold() + 0.1f * dt);
 
-        particles.updateParticles(renderer.getCamera().position(), dt,
-                                  [](Particles::Particle& p, const float delta_time)
-                                  {
-                                      p.pos(p.pos() + p.velocity() * delta_time);
-                                  });
+        particles.updateParticles(renderer.getCamera().position(), dt, particles_update_func);
     }
 
 private:

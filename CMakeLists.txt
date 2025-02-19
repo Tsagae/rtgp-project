@@ -6,6 +6,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${RTGP-Project_SOURCE_DIR})
 
 include_directories(imgui)
 include_directories(imgui/backends)
+include_directories(imguizmo/imGuIZMO.quat)
 include_directories(include)
 include_directories(src)
 
@@ -23,6 +24,7 @@ add_executable(RTGP-Project
         "imgui/imgui_draw.cpp"
         "imgui/imgui_tables.cpp"
         "imgui/imgui_widgets.cpp"
+        "imguizmo/imGuIZMO.quat/imGuIZMOquat.cpp"
 )
 
 if (WIN32)

@@ -10,6 +10,7 @@
 #endif
 
 #define GLM_ENABLE_EXPERIMENTAL
+#define IMGUI_DEFINE_MATH_OPERATORS
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -32,6 +33,8 @@
 #include <imgui_impl_opengl3.h>
 #include <filesystem>
 
+#include "imGuIZMOquat.h"
+
 static string selected_model = "./assets/models/bunny_lp.obj";
 static std::vector<string> model_files{};
 
@@ -41,11 +44,17 @@ static std::vector<string> texture_files{};
 
 static float dt_multiplier = 1;
 static bool show_debug_buffer = false;
+static vec3 particles_spawn_direction{0, 1, 0};
+static vec3 particles_spawn_randomness{0.3, 0.3, 0.3};
+static float particles_spawn_speed = 1;
+static float particle_spawn_life = 5;
+static float particle_added_spawn_life_randomness = 0.8;
 
 void menu_window(GLFWwindow* window, ImGuiIO& io);
 
 int main()
 {
+    particles_spawn_direction = normalize(particles_spawn_direction);
     for (const auto& entry : std::filesystem::directory_iterator("./assets/models"))
     {
         model_files.push_back(entry.path().string());
@@ -54,7 +63,6 @@ int main()
     {
         texture_files.push_back(entry.path().string());
     }
-
 
     randInit();
     Camera camera{};
@@ -104,6 +112,20 @@ int main()
         }
         camera.sensitivity = mouse_sensitivity;
         scene.show_debug_buffer = show_debug_buffer;
+        scene.start_velocity_func = []()
+        {
+            const auto random_dir = vec3{randMinusOneOne(), randMinusOneOne(), randMinusOneOne()};
+            const auto direction = vec3{
+                lerp(particles_spawn_direction[0], random_dir[0], particles_spawn_randomness[0]),
+                lerp(particles_spawn_direction[1], random_dir[1], particles_spawn_randomness[1]),
+                lerp(particles_spawn_direction[2], random_dir[2], particles_spawn_randomness[2]),
+            };
+            return normalize(direction) * particles_spawn_speed;
+        };
+        scene.start_life_func = []()
+        {
+            return particle_spawn_life + randZeroOne() * particle_spawn_life * particle_added_spawn_life_randomness;
+        };
 
         glfwPollEvents();
         keypresses_handling();
@@ -142,7 +164,7 @@ int main()
         camera.move(10, dt);
         if (!pause)
         {
-            scene.mainLoop(dt*dt_multiplier);
+            scene.mainLoop(dt * dt_multiplier);
         }
         r.render();
         ImGui::Render();
@@ -163,7 +185,8 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
     ImGui::Text("R resets the simulation."); // Display some text (you can use a format strings too)
 
     ImGui::SliderFloat("dt_multiplier", &dt_multiplier, 0.0f, 5.0f); // Edit 1 float using a slider from 0.0f to 1.0f
-    ImGui::SliderFloat("mouse sensitivity", &mouse_sensitivity, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
+    ImGui::SliderFloat("mouse sensitivity", &mouse_sensitivity, 0.0f, 1.0f);
+    // Edit 1 float using a slider from 0.0f to 1.0f
 
     // Model selection
     static int selected_model_idx = 0;
@@ -225,6 +248,15 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
         }
         ImGui::EndCombo();
     }
+    ImGui::SeparatorText("Particle spawn");
+    ImGui::gizmo3D("Particles Direction", particles_spawn_direction, 200, imguiGizmo::modeDirection);
+    ImGui::SliderFloat3("Randomness XYZ", &particles_spawn_randomness[0], 0.f, 1.f, "%.3f");
+    ImGui::DragFloat("Speed", &particles_spawn_speed, 0.005f, 0.0f, 10.f, "%.3f", ImGuiSliderFlags_Logarithmic);
+
+    ImGui::SeparatorText("Particle lifetime");
+    ImGui::DragFloat("Particle spawn life", &particle_spawn_life, 0.005f, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic);
+    ImGui::SliderFloat("Particle added spawn life randomness", &particle_added_spawn_life_randomness,  0.f, 1.f, "%.3f");
+
     ImGui::Checkbox("show debug buffer", &show_debug_buffer);
 
     ImGui::Checkbox("pause", &pause);
