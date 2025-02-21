@@ -36,7 +36,7 @@ public:
           debugBuffer(renderer, 1, 1),
           particles{
               Particles(particle_number, renderer.loadShader(
-                            "./src/shaders/particle_quad.vert",
+                            "./src/shaders/billboard_particle.vert",
                             "./src/shaders/billboard_particle.frag"), renderer)
           },
           pboDepthRBuf{disappearingFragmentsFb.createPboReadDepthBuffer()}
