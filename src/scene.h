@@ -45,10 +45,10 @@ public:
 
     void init()
     {
-        this->init(true);
+        this->init(true, 0.1);
     }
 
-    void init(const bool draw_particles)
+    void init(const bool draw_particles, const float particle_size)
     {
         sc_disappearingModel.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 2));
         disappearingFragmentsFb.bind();
@@ -75,7 +75,7 @@ public:
             // Draw the disappearing object
             re_disappearingModel.draw();
         });
-        p.emplace_back([&]
+        p.emplace_back([&, particle_size]
         {
             // Copy off-screen buffer to CPU memory
             disappearingFragmentsFb.bind();
@@ -105,7 +105,7 @@ public:
                                                  static_cast<GLfloat>(pixel.y) / 255.f,
                                                  static_cast<GLfloat>(pixel.z) / 255.f,
                                                  1
-                                             }, 0.1);
+                                             }, particle_size);
                 }
             }
 

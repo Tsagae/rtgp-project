@@ -55,6 +55,7 @@ static quat disappearing_object_rotation = toQuat(mat4{1});
 static float disappearing_object_scale = 2.f;
 static vec3 disappearing_object_position{1.f};
 static int particles_framebuffer_width_height[2] = {800, 600};
+static float particle_size = 0.1f;
 
 void menu_window(GLFWwindow* window, ImGuiIO& io);
 
@@ -98,7 +99,7 @@ int main()
     float cumulative_dt = 0;
     auto scene = Scene(r, selected_model, selected_texture, selected_noise_texture, particle_number,
                        particles_framebuffer_width_height[0], particles_framebuffer_width_height[1]);
-    scene.init(draw_particles);
+    scene.init(draw_particles, particle_size);
 
     // Main loop
     while (!r.shouldClose())
@@ -110,7 +111,7 @@ int main()
             scene.~Scene();
             new(&scene) Scene(r, selected_model, selected_texture, selected_noise_texture, particle_number,
                               particles_framebuffer_width_height[0], particles_framebuffer_width_height[1]);
-            scene.init(draw_particles);
+            scene.init(draw_particles, particle_size);
             reset_scene = false;
         }
         // Set values from menu
@@ -284,6 +285,8 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
     ImGui::gizmo3D("Particles Direction", particles_spawn_direction, 200, imguiGizmo::modeDirection);
     ImGui::SliderFloat3("Randomness XYZ", &particles_spawn_randomness[0], 0.f, 1.f, "%.3f");
     ImGui::DragFloat("Speed", &particles_spawn_speed, 0.005f, 0.0f, 10.f, "%.3f", ImGuiSliderFlags_Logarithmic);
+    if (ImGui::DragFloat("Size", &particle_size, 0.005f, 0.0f, 10.f, "%.3f", ImGuiSliderFlags_Logarithmic))
+        reset_scene = true;
 
     ImGui::SeparatorText("Particle lifetime");
     ImGui::DragFloat("Particle spawn life", &particle_spawn_life, 0.005f, 0.f, 100.f, "%.3f",
