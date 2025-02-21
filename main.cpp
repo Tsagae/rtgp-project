@@ -50,7 +50,9 @@ static vec3 particles_spawn_randomness{0.3, 0.3, 0.3};
 static float particles_spawn_speed = 1;
 static float particle_spawn_life = 5;
 static float particle_added_spawn_life_randomness = 0.8;
-
+static quat disappearing_object_rotation = toQuat(mat4{1});
+static float disappearing_object_scale = 1.f;
+static vec3 disappearing_object_position{1.f};
 
 void menu_window(GLFWwindow* window, ImGuiIO& io);
 
@@ -128,6 +130,9 @@ int main()
         {
             return particle_spawn_life + randZeroOne() * particle_spawn_life * particle_added_spawn_life_randomness;
         };
+        scene.disappearing_object_rotation = disappearing_object_rotation;
+        scene.disappearing_object_scale = disappearing_object_scale;
+        scene.disappearing_object_position = disappearing_object_position;
 
         glfwPollEvents();
         keypresses_handling();
@@ -144,7 +149,7 @@ int main()
         {
             if (mouse_updated)
             {
-                camera.mouseRotate(mouseDx, mouseDy);
+                disappearing_object_position += vec3{mouseDx, -mouseDy, 0} * 0.2f;
                 mouse_updated = false;
             }
             for (const auto& dir : buffered_directions)
@@ -260,6 +265,10 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
     {
         selected_noise_texture = selected_texture;
     }
+
+    ImGui::gizmo3D("Rotate object", disappearing_object_rotation, 200, imguiGizmo::mode3Axes | imguiGizmo::cubeAtOrigin);
+    ImGui::DragFloat("Scale object", &disappearing_object_scale, 0.005f, 0.0f, 20.f, "%.3f");
+
 
     ImGui::SeparatorText("Particle spawn");
     if (ImGui::Checkbox("draw particles", &draw_particles))

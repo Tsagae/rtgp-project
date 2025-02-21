@@ -13,6 +13,9 @@ class Scene
 {
 public:
     bool show_debug_buffer{false};
+    glm::quat disappearing_object_rotation = glm::toQuat(glm::mat4{1});
+    float disappearing_object_scale{1.f};
+    glm::vec3 disappearing_object_position{1.f};
     std::function<void(Particles::Particle&, float dt)> particles_update_func =
         [](Particles::Particle& p, const float delta_time)
     {
@@ -32,7 +35,6 @@ public:
     explicit Scene(Renderer& renderer, const string& disappearing_model, const string& texture,
                    const string& noise_texture)
         : renderer(renderer),
-          sc_disappearingModel(scale(glm::mat4{1}, glm::vec3{2})),
           re_disappearingModel(
               renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/disappearing_mesh.frag"),
               renderer,
@@ -61,8 +63,7 @@ public:
 
     void init(const bool draw_particles)
     {
-        sc_disappearingModel.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 2)) * rotate(
-            sc_disappearingModel.worldSpaceTransform, glm::radians(45.f), glm::vec3(0.0f, 1.0f, 0.0f));
+        sc_disappearingModel.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 2));
 
         disappearingFragmentsFb.bind();
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -141,14 +142,11 @@ public:
 
     void mainLoop(const float dt)
     {
+        sc_disappearingModel.modelMatrix = glm::scale(toMat4(disappearing_object_rotation),
+                                                      glm::vec3{disappearing_object_scale});
+        sc_disappearingModel.worldSpaceTransform = glm::translate(glm::mat4{1}, disappearing_object_position);
         re_disappearingModel.threshold(re_disappearingModel.threshold() + 0.1f * dt);
         particles.updateParticles(renderer.getCamera().position(), dt, particles_update_func);
-    }
-
-    void moveSceneObject(float dx, float dy)
-    {
-        sc_disappearingModel.worldSpaceTransform = glm::translate(sc_disappearingModel.worldSpaceTransform,
-                                                                  glm::vec3(dx, dy, 0) * 0.5f);
     }
 
 private:
