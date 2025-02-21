@@ -19,6 +19,7 @@ public:
         {
             return;
         }
+
         shader.use();
         bindTextures();
 

@@ -45,7 +45,7 @@ public:
           pboColorRBuf{disappearingFragmentsFb.createPboReadColorBuffer()},
           debugBuffer(renderer, 1, 1),
           particles{
-              Particles(10000, renderer.loadShader(
+              Particles(100000, renderer.loadShader(
                             "./src/shaders/particle_quad.vert",
                             "./src/shaders/billboard_particle.frag"), renderer)
           },
@@ -54,8 +54,12 @@ public:
     }
 
     //Scene& Scene::operator=(const Scene&) = default;
-
     void init()
+    {
+        this->init(true);
+    }
+
+    void init(const bool draw_particles)
     {
         sc_disappearingModel.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 2)) * rotate(
             sc_disappearingModel.worldSpaceTransform, glm::radians(45.f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -123,20 +127,28 @@ public:
             FrameBuffer::unbind(renderer.screenWidth(), renderer.screenHeight());
             //debugBuffer.DisplayFramebufferTexture(renderer.loadTexture("./assets/textures/UV_Grid_Sm.png").textureId());
         });
-        p.emplace_back([&]
+        if (draw_particles)
         {
-            glDisable(GL_CULL_FACE);
-            particles.drawParticles();
-            glEnable(GL_CULL_FACE);
-        });
+            p.emplace_back([&]
+            {
+                glDisable(GL_CULL_FACE);
+                particles.drawParticles();
+                glEnable(GL_CULL_FACE);
+            });
+        }
         renderer.setPipeline(p);
     }
 
     void mainLoop(const float dt)
     {
         re_disappearingModel.threshold(re_disappearingModel.threshold() + 0.1f * dt);
-
         particles.updateParticles(renderer.getCamera().position(), dt, particles_update_func);
+    }
+
+    void moveSceneObject(float dx, float dy)
+    {
+        sc_disappearingModel.worldSpaceTransform = glm::translate(sc_disappearingModel.worldSpaceTransform,
+                                                                  glm::vec3(dx, dy, 0) * 0.5f);
     }
 
 private:
