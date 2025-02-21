@@ -44,11 +44,13 @@ static std::vector<string> texture_files{};
 
 static float dt_multiplier = 1;
 static bool show_debug_buffer = false;
+static bool draw_particles = true;
 static vec3 particles_spawn_direction{0, 1, 0};
 static vec3 particles_spawn_randomness{0.3, 0.3, 0.3};
 static float particles_spawn_speed = 1;
 static float particle_spawn_life = 5;
 static float particle_added_spawn_life_randomness = 0.8;
+
 
 void menu_window(GLFWwindow* window, ImGuiIO& io);
 
@@ -107,7 +109,7 @@ int main()
                 std::endl;
             scene.~Scene();
             new(&scene) Scene(r, selected_model, selected_texture, selected_noise_texture);
-            scene.init();
+            scene.init(draw_particles);
             reset_scene = false;
         }
         camera.sensitivity = mouse_sensitivity;
@@ -229,35 +231,57 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
         ImGui::EndCombo();
     }
 
-    // Texture selection
-    static int selected_noise_texture_idx = 0;
-    if (ImGui::BeginCombo("noise texture", selected_noise_texture.c_str()))
-    {
-        for (int i = 0; i < texture_files.size(); i++)
-        {
-            const bool is_selected = (selected_noise_texture_idx == i);
-            if (ImGui::Selectable(texture_files[i].c_str(), is_selected))
-            {
-                selected_noise_texture_idx = i;
-                selected_noise_texture = texture_files[selected_noise_texture_idx];
-                reset_scene = true;
-            }
+    static bool different_noise_texture = true;
+    ImGui::Checkbox("different noise texture", &different_noise_texture);
 
-            if (is_selected)
-                ImGui::SetItemDefaultFocus();
+    if (different_noise_texture)
+    {
+        // Texture selection
+        static int selected_noise_texture_idx = 0;
+        if (ImGui::BeginCombo("noise texture", selected_noise_texture.c_str()))
+        {
+            for (int i = 0; i < texture_files.size(); i++)
+            {
+                const bool is_selected = (selected_noise_texture_idx == i);
+                if (ImGui::Selectable(texture_files[i].c_str(), is_selected))
+                {
+                    selected_noise_texture_idx = i;
+                    selected_noise_texture = texture_files[selected_noise_texture_idx];
+                    reset_scene = true;
+                }
+
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
         }
-        ImGui::EndCombo();
     }
+    else
+    {
+        selected_noise_texture = selected_texture;
+    }
+
     ImGui::SeparatorText("Particle spawn");
+    if (ImGui::Checkbox("draw particles", &draw_particles))
+        reset_scene = true;
+
     ImGui::gizmo3D("Particles Direction", particles_spawn_direction, 200, imguiGizmo::modeDirection);
     ImGui::SliderFloat3("Randomness XYZ", &particles_spawn_randomness[0], 0.f, 1.f, "%.3f");
     ImGui::DragFloat("Speed", &particles_spawn_speed, 0.005f, 0.0f, 10.f, "%.3f", ImGuiSliderFlags_Logarithmic);
 
     ImGui::SeparatorText("Particle lifetime");
-    ImGui::DragFloat("Particle spawn life", &particle_spawn_life, 0.005f, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic);
-    ImGui::SliderFloat("Particle added spawn life randomness", &particle_added_spawn_life_randomness,  0.f, 1.f, "%.3f");
+    ImGui::DragFloat("Particle spawn life", &particle_spawn_life, 0.005f, 0.f, 100.f, "%.3f",
+                     ImGuiSliderFlags_Logarithmic);
+    ImGui::SliderFloat("Particle added spawn life randomness", &particle_added_spawn_life_randomness, 0.f, 1.f, "%.3f");
 
     ImGui::Checkbox("show debug buffer", &show_debug_buffer);
+
+    static bool vsync = true;
+    if (ImGui::Checkbox("vsync", &vsync))
+    {
+        glfwSwapInterval(vsync);
+    };
+
 
     ImGui::Checkbox("pause", &pause);
 
