@@ -8,22 +8,21 @@ uniform sampler2D texSampler;
 uniform sampler2D maskSampler;
 uniform float threshold;
 uniform float lowerBoundThreshold;
-uniform bool invert; //TODO: Change with subroutine
+uniform bool invert;//TODO: Change with subroutine
 
 
 void main() {
     vec4 sampledTexture = texture(texSampler, TexCoord);
     vec4 sampledMask = texture(maskSampler, TexCoord);
 
-    if (sampledMask.r > lowerBoundThreshold && sampledMask.r <= threshold){
-        if (!invert){
-            discard;
-        } else {
+    if (!invert){
+        if (sampledMask.r > threshold){
             color = sampledTexture;
+        } else {
+            discard;
         }
-        //FragColor = vec4(0, 0, 0, 0);
     } else {
-        if (!invert){
+        if (sampledMask.r > lowerBoundThreshold && sampledMask.r <= threshold){
             color = sampledTexture;
         } else {
             discard;
