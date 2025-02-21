@@ -50,8 +50,9 @@ static vec3 particles_spawn_randomness{0.3, 0.3, 0.3};
 static float particles_spawn_speed = 1;
 static float particle_spawn_life = 5;
 static float particle_added_spawn_life_randomness = 0.8;
+static int particle_number = 100000;
 static quat disappearing_object_rotation = toQuat(mat4{1});
-static float disappearing_object_scale = 1.f;
+static float disappearing_object_scale = 2.f;
 static vec3 disappearing_object_position{1.f};
 
 void menu_window(GLFWwindow* window, ImGuiIO& io);
@@ -67,7 +68,6 @@ int main()
     {
         texture_files.push_back(entry.path().string());
     }
-
     randInit();
     Camera camera{};
     Renderer r(camera);
@@ -93,7 +93,7 @@ int main()
                                        glm::vec3(0.0f, 1.0f, 0.0f))));
     std::cout << "init done" << std::endl;
 
-    auto scene = Scene(r, selected_model, selected_texture, selected_noise_texture);
+    auto scene = Scene(r, selected_model, selected_texture, selected_noise_texture, particle_number);
     scene.init();
 
     glfwSetCursorPos(r.getGlfwWindow(), static_cast<float>(r.screenWidth()) / 2,
@@ -110,7 +110,7 @@ int main()
             std::cout << "resetting scene with model: " << selected_model << " texture: " << selected_texture <<
                 std::endl;
             scene.~Scene();
-            new(&scene) Scene(r, selected_model, selected_texture, selected_noise_texture);
+            new(&scene) Scene(r, selected_model, selected_texture, selected_noise_texture, particle_number);
             scene.init(draw_particles);
             reset_scene = false;
         }
@@ -133,7 +133,6 @@ int main()
         scene.disappearing_object_rotation = disappearing_object_rotation;
         scene.disappearing_object_scale = disappearing_object_scale;
         scene.disappearing_object_position = disappearing_object_position;
-
         glfwPollEvents();
         keypresses_handling();
         // Start the Dear ImGui frame
@@ -272,6 +271,9 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
 
     ImGui::SeparatorText("Particle spawn");
     if (ImGui::Checkbox("draw particles", &draw_particles))
+        reset_scene = true;
+
+    if (ImGui::SliderInt("Particle number", &particle_number, 0, 1000000000, "%d", ImGuiSliderFlags_Logarithmic))
         reset_scene = true;
 
     ImGui::gizmo3D("Particles Direction", particles_spawn_direction, 200, imguiGizmo::modeDirection);

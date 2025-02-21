@@ -32,8 +32,7 @@ public:
         return randZeroOne() * 5 + 5;
     };
 
-    explicit Scene(Renderer& renderer, const string& disappearing_model, const string& texture,
-                   const string& noise_texture)
+    explicit Scene(Renderer& renderer, const string& disappearing_model, const string& texture, const string& noise_texture, const int particle_number)
         : renderer(renderer),
           re_disappearingModel(
               renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/disappearing_mesh.frag"),
@@ -47,7 +46,7 @@ public:
           pboColorRBuf{disappearingFragmentsFb.createPboReadColorBuffer()},
           debugBuffer(renderer, 1, 1),
           particles{
-              Particles(100000, renderer.loadShader(
+              Particles(particle_number, renderer.loadShader(
                             "./src/shaders/particle_quad.vert",
                             "./src/shaders/billboard_particle.frag"), renderer)
           },
