@@ -17,8 +17,8 @@ void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GL
 class Renderer
 {
 public:
-    explicit Renderer(Camera& camera)
-        : camera(camera)
+    Renderer(Camera& camera, const int width, const int height)
+        : camera(camera), _screenWidth(width), _screenHeight(height)
     {
     }
 
@@ -200,7 +200,7 @@ public:
 
 private:
     Camera& camera;
-    int _screenWidth = 1920, _screenHeight = 1080;
+    int _screenWidth, _screenHeight;
     float _deltaTime = 0, _lastFrame = 0, _currentFrame = 0;
     GLFWwindow* _window = nullptr;
     glm::mat4 _projectionMatrix{};

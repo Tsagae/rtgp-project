@@ -59,7 +59,7 @@ static float particle_size = 0.1f;
 
 void menu_window(GLFWwindow* window, ImGuiIO& io);
 
-int main()
+int main(int argc, char* argv[])
 {
     particles_spawn_direction = normalize(particles_spawn_direction);
     for (const auto& entry : std::filesystem::directory_iterator("./assets/models"))
@@ -72,7 +72,14 @@ int main()
     }
     randInit();
     Camera camera{};
-    Renderer r(camera);
+    int w = 1920;
+    int h = 1080;
+    if (argc >= 3)
+    {
+        w = std::stoi(argv[1]);
+        h = std::stoi(argv[2]);
+    }
+    Renderer r(camera, w, h);
     auto init_res = r.init();
     if (init_res != 0)
     {
@@ -280,7 +287,8 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
     ImGui::SeparatorText("Particle spawn");
     if (ImGui::Checkbox("draw particles", &draw_particles))
         reset_scene = true;
-    if (ImGui::SliderInt("Number of max particles", &particle_number, 0, 1000000000, "%d", ImGuiSliderFlags_Logarithmic))
+    if (ImGui::SliderInt("Number of max particles", &particle_number, 0, 1000000000, "%d",
+                         ImGuiSliderFlags_Logarithmic))
         reset_scene = true;
     ImGui::gizmo3D("Particles Direction", particles_spawn_direction, 200, imguiGizmo::modeDirection);
     ImGui::SliderFloat3("Randomness XYZ", &particles_spawn_randomness[0], 0.f, 1.f, "%.3f");

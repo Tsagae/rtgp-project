@@ -40,3 +40,7 @@ git cmake g++ glfw-devel assimp-devel glm-devel
   cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" -S . -B ./cmake-build-release
   cmake --build ./cmake-build-release
 ```
+## Running
+
+### Options
+- `RTGP-Project [width] [height]` - Run the program with a custom resolution (without arguments defaults to 1920x1080)
