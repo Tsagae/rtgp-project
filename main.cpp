@@ -54,6 +54,7 @@ static int particle_number = 100000;
 static quat disappearing_object_rotation = toQuat(mat4{1});
 static float disappearing_object_scale = 2.f;
 static vec3 disappearing_object_position{1.f};
+static int particles_framebuffer_width_height[2] = {800, 600};
 
 void menu_window(GLFWwindow* window, ImGuiIO& io);
 
@@ -90,13 +91,13 @@ int main()
                                       0.1f, 10000.0f));
     camera.setTransform(inverse(lookAt(vec3(0.0f, 0.0f, 30.0f), vec3(0.0f, 0.0f, -7.0f), vec3(0.0f, 1.0f, 0.0f))));
     std::cout << "init done" << std::endl;
-
     r.setKeyCallback(key_callback);
     r.setCursorPosCallback(mouse_callback);
 
     int frames = 0;
     float cumulative_dt = 0;
-    auto scene = Scene(r, selected_model, selected_texture, selected_noise_texture, particle_number);
+    auto scene = Scene(r, selected_model, selected_texture, selected_noise_texture, particle_number,
+                       particles_framebuffer_width_height[0], particles_framebuffer_width_height[1]);
     scene.init(draw_particles);
 
     // Main loop
@@ -107,7 +108,8 @@ int main()
             std::cout << "resetting scene with model: " << selected_model << " texture: " << selected_texture <<
                 std::endl;
             scene.~Scene();
-            new(&scene) Scene(r, selected_model, selected_texture, selected_noise_texture, particle_number);
+            new(&scene) Scene(r, selected_model, selected_texture, selected_noise_texture, particle_number,
+                              particles_framebuffer_width_height[0], particles_framebuffer_width_height[1]);
             scene.init(draw_particles);
             reset_scene = false;
         }
@@ -277,7 +279,7 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
     ImGui::SeparatorText("Particle spawn");
     if (ImGui::Checkbox("draw particles", &draw_particles))
         reset_scene = true;
-    if (ImGui::SliderInt("Particle number", &particle_number, 0, 1000000000, "%d", ImGuiSliderFlags_Logarithmic))
+    if (ImGui::SliderInt("Number of max particles", &particle_number, 0, 1000000000, "%d", ImGuiSliderFlags_Logarithmic))
         reset_scene = true;
     ImGui::gizmo3D("Particles Direction", particles_spawn_direction, 200, imguiGizmo::modeDirection);
     ImGui::SliderFloat3("Randomness XYZ", &particles_spawn_randomness[0], 0.f, 1.f, "%.3f");
@@ -289,6 +291,9 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
     ImGui::SliderFloat("Particle added spawn life randomness", &particle_added_spawn_life_randomness, 0.f, 1.f, "%.3f");
 
     ImGui::SeparatorText("Other options");
+    if (ImGui::DragInt2("Particle buffer resolution (width, height)", particles_framebuffer_width_height, 1.f, 1.f,
+                        4000.f, "%d"))
+        reset_scene = true;
     ImGui::Checkbox("Show debug buffer (particles spawned in the current frame)", &show_debug_buffer);
     static bool vsync = true;
     if (ImGui::Checkbox("Vsync", &vsync))

@@ -12,7 +12,7 @@ class Scene
 {
 public:
     bool show_debug_buffer{false};
-    glm::quat disappearing_object_rotation = glm::toQuat(glm::mat4{1});
+    glm::quat disappearing_object_rotation = toQuat(glm::mat4{1});
     float disappearing_object_scale{1.f};
     glm::vec3 disappearing_object_position{1.f};
     std::function<void(Particles::Particle&, float dt)> particles_update_func;
@@ -20,7 +20,8 @@ public:
     std::function<float()> start_life_func;
 
     explicit Scene(Renderer& renderer, const string& disappearing_model, const string& texture,
-                   const string& noise_texture, const int particle_number)
+                   const string& noise_texture, const int particle_number, const GLuint particles_framebuffer_width,
+                   const GLuint particles_framebuffer_height)
         : renderer(renderer),
           re_disappearingModel(
               renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/disappearing_mesh.frag"),
@@ -30,7 +31,7 @@ public:
                   renderer.loadTexture(noise_texture)
               },
               renderer.loadModel(disappearing_model), sc_disappearingModel),
-          disappearingFragmentsFb(800, 600),
+          disappearingFragmentsFb(particles_framebuffer_width, particles_framebuffer_height),
           pboColorRBuf{disappearingFragmentsFb.createPboReadColorBuffer()},
           debugBuffer(renderer, 1, 1),
           particles{
