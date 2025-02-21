@@ -3,7 +3,6 @@
 #include "sceneobject.h"
 #include "renderer.h"
 #include <gpuobjects/particles.h>
-#include <utils/random_utils.h>
 #include "renderobject.h"
 #include "debugbuffer.h"
 #include "disappearingobject.h"
@@ -16,23 +15,12 @@ public:
     glm::quat disappearing_object_rotation = glm::toQuat(glm::mat4{1});
     float disappearing_object_scale{1.f};
     glm::vec3 disappearing_object_position{1.f};
-    std::function<void(Particles::Particle&, float dt)> particles_update_func =
-        [](Particles::Particle& p, const float delta_time)
-    {
-        p.pos(p.pos() + p.velocity() * delta_time);
-    };
-    std::function<glm::vec3()> start_velocity_func =
-        []
-    {
-        return glm::vec3{randMinusOneOne(), randZeroOne() + 0.2, randMinusOneOne()};
-    };
-    std::function<float()> start_life_func =
-        []
-    {
-        return randZeroOne() * 5 + 5;
-    };
+    std::function<void(Particles::Particle&, float dt)> particles_update_func;
+    std::function<glm::vec3()> start_velocity_func;
+    std::function<float()> start_life_func;
 
-    explicit Scene(Renderer& renderer, const string& disappearing_model, const string& texture, const string& noise_texture, const int particle_number)
+    explicit Scene(Renderer& renderer, const string& disappearing_model, const string& texture,
+                   const string& noise_texture, const int particle_number)
         : renderer(renderer),
           re_disappearingModel(
               renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/disappearing_mesh.frag"),
@@ -54,7 +42,6 @@ public:
     {
     }
 
-    //Scene& Scene::operator=(const Scene&) = default;
     void init()
     {
         this->init(true);
@@ -63,7 +50,6 @@ public:
     void init(const bool draw_particles)
     {
         sc_disappearingModel.worldSpaceTransform = translate(glm::mat4(1.), glm::vec3(0, -2, 2));
-
         disappearingFragmentsFb.bind();
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -73,23 +59,24 @@ public:
         std::vector<function<void()>> p;
         p.emplace_back([&]
         {
+            // Draw particles to off-screen buffer
             disappearingFragmentsFb.bind();
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glClearColor(0.5, 0.5, 0.5, 1.0f);
             re_disappearingModel.drawRemovedFragments();
-            //re_cube.draw();
             FrameBuffer::unbind(renderer.screenWidth(), renderer.screenHeight());
             if (show_debug_buffer)
                 debugBuffer.DisplayFramebufferTexture(disappearingFragmentsFb.depthTextureId());
         });
         p.emplace_back([&]
         {
+            // Draw the disappearing object
             re_disappearingModel.draw();
-            //re_cube2.draw();
         });
         p.emplace_back([&]
         {
+            // Copy off-screen buffer to CPU memory
             disappearingFragmentsFb.bind();
             pboColorRBuf.bind();
             const auto pixels = reinterpret_cast<glm::u8vec4*>(pboColorRBuf.read());
@@ -97,6 +84,7 @@ public:
             pboDepthRBuf.bind();
             const auto depth = reinterpret_cast<GLfloat*>(pboDepthRBuf.read());
             pboDepthRBuf.unbind();
+            // Find pixels that are not black and spawn particles at their position
             for (auto i = 0; i < pboColorRBuf.bufferSize() / 4; i++)
             {
                 if (const auto pixel = pixels[i]; glm::u8vec3{pixel.x, pixel.y, pixel.z} != glm::u8vec3{0})
@@ -106,12 +94,8 @@ public:
                     const auto y = 2 * (static_cast<GLfloat>(i / disappearingFragmentsFb.width()) / static_cast<GLfloat>
                         (disappearingFragmentsFb.height())) - 1;
                     const auto pixelNDC = glm::vec4{x, y, depth[i] * depth[i], 1};
-                    //auto pixelNDC = glm::vec4{1, 1, 0.9, 1};
-                    auto worldSpacePos = glm::inverse(renderer.projectionMatrix() * renderer.viewMatrix()) * pixelNDC;
+                    auto worldSpacePos = inverse(renderer.projectionMatrix() * renderer.viewMatrix()) * pixelNDC;
                     worldSpacePos /= worldSpacePos.w;
-                    //std::cout << "x: " << x << " y: " << y << std::endl;
-                    //std::cout << "pixelNDC: " << pixelNDC.x << " " << pixelNDC.y << " " << pixelNDC.z << std::endl;
-                    //std::cout << "WorldSpacePos: " << worldSpacePos.x << " " << worldSpacePos.y << " " << worldSpacePos.z << std::endl;
                     particles.spawnParticles(1, glm::vec3{worldSpacePos.x, worldSpacePos.y, worldSpacePos.z},
                                              start_velocity_func(),
                                              start_life_func(),
@@ -125,7 +109,6 @@ public:
             }
 
             FrameBuffer::unbind(renderer.screenWidth(), renderer.screenHeight());
-            //debugBuffer.DisplayFramebufferTexture(renderer.loadTexture("./assets/textures/UV_Grid_Sm.png").textureId());
         });
         if (draw_particles)
         {
@@ -141,9 +124,9 @@ public:
 
     void mainLoop(const float dt)
     {
-        sc_disappearingModel.modelMatrix = glm::scale(toMat4(disappearing_object_rotation),
-                                                      glm::vec3{disappearing_object_scale});
-        sc_disappearingModel.worldSpaceTransform = glm::translate(glm::mat4{1}, disappearing_object_position);
+        sc_disappearingModel.modelMatrix = scale(toMat4(disappearing_object_rotation),
+                                                 glm::vec3{disappearing_object_scale});
+        sc_disappearingModel.worldSpaceTransform = translate(glm::mat4{1}, disappearing_object_position);
         re_disappearingModel.threshold(re_disappearingModel.threshold() + 0.1f * dt);
         particles.updateParticles(renderer.getCamera().position(), dt, particles_update_func);
     }

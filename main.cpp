@@ -86,23 +86,20 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(r.getGlfwWindow(), true);
     ImGui_ImplOpenGL3_Init();
 
-    r.setProjectionMatrix(glm::perspective(
-        45.0f, static_cast<float>(r.screenWidth()) / static_cast<float>(r.screenHeight()),
-        0.1f, 10000.0f));
-    camera.setTransform(inverse(lookAt(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(0.0f, 0.0f, -7.0f),
-                                       glm::vec3(0.0f, 1.0f, 0.0f))));
+    r.setProjectionMatrix(perspective(45.0f, static_cast<float>(r.screenWidth()) / static_cast<float>(r.screenHeight()),
+                                      0.1f, 10000.0f));
+    camera.setTransform(inverse(lookAt(vec3(0.0f, 0.0f, 30.0f), vec3(0.0f, 0.0f, -7.0f), vec3(0.0f, 1.0f, 0.0f))));
     std::cout << "init done" << std::endl;
 
-    auto scene = Scene(r, selected_model, selected_texture, selected_noise_texture, particle_number);
-    scene.init();
-
-    glfwSetCursorPos(r.getGlfwWindow(), static_cast<float>(r.screenWidth()) / 2,
-                     static_cast<float>(r.screenHeight()) / 2);
     r.setKeyCallback(key_callback);
     r.setCursorPosCallback(mouse_callback);
 
     int frames = 0;
     float cumulative_dt = 0;
+    auto scene = Scene(r, selected_model, selected_texture, selected_noise_texture, particle_number);
+    scene.init(draw_particles);
+
+    // Main loop
     while (!r.shouldClose())
     {
         if (reset_scene)
@@ -114,9 +111,14 @@ int main()
             scene.init(draw_particles);
             reset_scene = false;
         }
+        // Set values from menu
         camera.sensitivity = mouse_sensitivity;
         scene.show_debug_buffer = show_debug_buffer;
-        scene.start_velocity_func = []()
+        scene.particles_update_func = [](Particles::Particle& p, const float dt)
+        {
+            p.pos(p.pos() + p.velocity() * dt);
+        };
+        scene.start_velocity_func = []
         {
             const auto random_dir = vec3{randMinusOneOne(), randMinusOneOne(), randMinusOneOne()};
             const auto direction = vec3{
@@ -126,19 +128,22 @@ int main()
             };
             return normalize(direction) * particles_spawn_speed;
         };
-        scene.start_life_func = []()
+        scene.start_life_func = []
         {
             return particle_spawn_life + randZeroOne() * particle_spawn_life * particle_added_spawn_life_randomness;
         };
         scene.disappearing_object_rotation = disappearing_object_rotation;
         scene.disappearing_object_scale = disappearing_object_scale;
         scene.disappearing_object_position = disappearing_object_position;
+
         glfwPollEvents();
         keypresses_handling();
+
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
         if (menu_on)
         {
             menu_window(r.getGlfwWindow(), io);
@@ -148,7 +153,7 @@ int main()
         {
             if (mouse_updated)
             {
-                disappearing_object_position += vec3{mouseDx, -mouseDy, 0} * 0.2f;
+                disappearing_object_position += vec3{mouseDx, -mouseDy, 0} * mouse_sensitivity;
                 mouse_updated = false;
             }
             for (const auto& dir : buffered_directions)
@@ -157,6 +162,7 @@ int main()
             }
             buffered_directions.clear();
         }
+
         frames++;
         r.computeDeltaTime();
         const float dt = r.deltaTime();
@@ -167,7 +173,6 @@ int main()
             std::cout << "dt: " << dt * 1000 << "ms" << std::endl;
             std::cout << "FPS: " << 1 / dt << std::endl;
         }
-        camera.move(10, dt);
         if (!pause)
         {
             scene.mainLoop(dt * dt_multiplier);
@@ -185,14 +190,13 @@ int main()
 
 void menu_window(GLFWwindow* window, ImGuiIO& io)
 {
-    ImGui::Begin("Menu"); // Create a window called "Hello, world!" and append into it.
+    ImGui::Begin("Menu");
+    ImGui::Text("P pauses and resumes the simulation");
+    ImGui::Text("R resets the simulation");
+    ImGui::Text("Press esc to close the menu and move the object");
 
-    ImGui::Text("P pauses and resumes the simulation."); // Display some text (you can use a format strings too)
-    ImGui::Text("R resets the simulation."); // Display some text (you can use a format strings too)
-
-    ImGui::SliderFloat("dt_multiplier", &dt_multiplier, 0.0f, 5.0f); // Edit 1 float using a slider from 0.0f to 1.0f
+    ImGui::SliderFloat("dt_multiplier", &dt_multiplier, 0.0f, 5.0f);
     ImGui::SliderFloat("mouse sensitivity", &mouse_sensitivity, 0.0f, 1.0f);
-    // Edit 1 float using a slider from 0.0f to 1.0f
 
     // Model selection
     static int selected_model_idx = 0;
@@ -236,11 +240,11 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
     }
 
     static bool different_noise_texture = true;
-    ImGui::Checkbox("different noise texture", &different_noise_texture);
+    ImGui::Checkbox("Use different noise texture", &different_noise_texture);
 
     if (different_noise_texture)
     {
-        // Texture selection
+        // Noise Texture selection
         static int selected_noise_texture_idx = 0;
         if (ImGui::BeginCombo("noise texture", selected_noise_texture.c_str()))
         {
@@ -265,17 +269,16 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
         selected_noise_texture = selected_texture;
     }
 
-    ImGui::gizmo3D("Rotate object", disappearing_object_rotation, 200, imguiGizmo::mode3Axes | imguiGizmo::cubeAtOrigin);
+    ImGui::SeparatorText("Object control");
+    ImGui::gizmo3D("Rotate object", disappearing_object_rotation, 200,
+                   imguiGizmo::mode3Axes | imguiGizmo::cubeAtOrigin);
     ImGui::DragFloat("Scale object", &disappearing_object_scale, 0.005f, 0.0f, 20.f, "%.3f");
-
 
     ImGui::SeparatorText("Particle spawn");
     if (ImGui::Checkbox("draw particles", &draw_particles))
         reset_scene = true;
-
     if (ImGui::SliderInt("Particle number", &particle_number, 0, 1000000000, "%d", ImGuiSliderFlags_Logarithmic))
         reset_scene = true;
-
     ImGui::gizmo3D("Particles Direction", particles_spawn_direction, 200, imguiGizmo::modeDirection);
     ImGui::SliderFloat3("Randomness XYZ", &particles_spawn_randomness[0], 0.f, 1.f, "%.3f");
     ImGui::DragFloat("Speed", &particles_spawn_speed, 0.005f, 0.0f, 10.f, "%.3f", ImGuiSliderFlags_Logarithmic);
@@ -285,20 +288,16 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
                      ImGuiSliderFlags_Logarithmic);
     ImGui::SliderFloat("Particle added spawn life randomness", &particle_added_spawn_life_randomness, 0.f, 1.f, "%.3f");
 
-    ImGui::Checkbox("show debug buffer", &show_debug_buffer);
-
+    ImGui::SeparatorText("Other options");
+    ImGui::Checkbox("Show debug buffer (particles spawned in the current frame)", &show_debug_buffer);
     static bool vsync = true;
-    if (ImGui::Checkbox("vsync", &vsync))
+    if (ImGui::Checkbox("Vsync", &vsync))
     {
         glfwSwapInterval(vsync);
     };
-
-
-    ImGui::Checkbox("pause", &pause);
-
+    ImGui::Checkbox("Pause", &pause);
     if (ImGui::Button("Reset scene"))
         reset_scene = true;
-
     if (ImGui::Button("Quit"))
         glfwSetWindowShouldClose(window, GL_TRUE);
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
