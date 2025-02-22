@@ -280,6 +280,13 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
     }
 
     ImGui::SeparatorText("Object control");
+    if (ImGui::Button("Reset object position, rotation and scaling"))
+    {
+        disappearing_object_position = vec3{1};
+        disappearing_object_scale = 2.f;
+        disappearing_object_rotation = toQuat(mat3{1});
+        reset_scene = true;
+    }
     ImGui::gizmo3D("Rotate object", disappearing_object_rotation, 200,
                    imguiGizmo::mode3Axes | imguiGizmo::cubeAtOrigin);
     ImGui::DragFloat("Scale object", &disappearing_object_scale, 0.005f, 0.0f, 20.f, "%.3f");
