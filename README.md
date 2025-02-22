@@ -30,8 +30,8 @@ root folder of the project run:
 ```
 git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg; .\bootstrap-vcpkg.bat -disableMetrics
-cmake --preset=default
-cmake --build .\build --config Release
+cmake -DCMAKE_BUILD_TYPE=Release --preset=default
+cmake --build .\build
 ```
 
 ### Linux
