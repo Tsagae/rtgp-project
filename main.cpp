@@ -198,6 +198,18 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+static void HelpMarker(const char* desc)
+{
+    ImGui::TextDisabled("(?)");
+    if (ImGui::BeginItemTooltip())
+    {
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        ImGui::TextUnformatted(desc);
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+}
+
 void menu_window(GLFWwindow* window, ImGuiIO& io)
 {
     ImGui::Begin("Menu");
@@ -251,6 +263,8 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
 
     static bool different_noise_texture = true;
     ImGui::Checkbox("Use different noise texture", &different_noise_texture);
+    ImGui::SameLine();
+    HelpMarker("If unchecked uses the selected texture as both the noise texture and the object texture");
 
     if (different_noise_texture)
     {
@@ -294,6 +308,7 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
     ImGui::SeparatorText("Particle spawn");
     if (ImGui::Checkbox("draw particles", &draw_particles))
         reset_scene = true;
+    ImGui::Text("The options below affect only the particles that are not yet spawned");
     if (ImGui::SliderInt("Number of max particles", &particle_number, 0, 1000000000, "%d",
                          ImGuiSliderFlags_Logarithmic))
         reset_scene = true;
@@ -304,6 +319,7 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
         reset_scene = true;
 
     ImGui::SeparatorText("Particle lifetime");
+    ImGui::Text("The options below affect only the particles that are not yet spawned");
     ImGui::DragFloat("Particle spawn life", &particle_spawn_life, 0.005f, 0.f, 100.f, "%.3f",
                      ImGuiSliderFlags_Logarithmic);
     ImGui::SliderFloat("Particle added spawn life randomness", &particle_added_spawn_life_randomness, 0.f, 1.f, "%.3f");
