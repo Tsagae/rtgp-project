@@ -64,7 +64,7 @@ public:
         glEnable(GL_CULL_FACE);
 
         glClearColor(0.5, 0.5, 0.5, 1.0f);
-
+        glfwSwapInterval(true);
         return 0;
     }
 
