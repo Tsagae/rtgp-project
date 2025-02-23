@@ -2,6 +2,8 @@
 
 The project consists in implementing a disintegrating mesh particle effect
 
+![demo](https://github.com/user-attachments/assets/0cac9e11-72f0-4d36-9f9e-52678fb7db9b)
+
 ## Rendering Steps
 
 1. Drawing the mesh to the main framebuffer but discarding fragments that have a value lower than a (gradually
