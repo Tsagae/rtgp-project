@@ -39,15 +39,15 @@ static string selected_model = "./assets/models/bunny_lp.obj";
 static std::vector<string> model_files{};
 
 static string selected_texture = "./assets/textures/UV_Grid_Sm.png";
-static string selected_noise_texture = "./assets/textures/noise1.jpg";
+static string selected_noise_texture = "./assets/textures/Voronoi 7 - 512x512.png";
 static std::vector<string> texture_files{};
 
 static float dt_multiplier = 1;
 static bool show_debug_buffer = false;
 static bool draw_particles = true;
-static vec3 particles_spawn_direction{0, 1, 0};
-static vec3 particles_spawn_randomness{0.3, 0.3, 0.3};
-static float particles_spawn_speed = 1;
+static vec3 particles_spawn_direction{0.775614f, 0.441849f, -0.450769f};
+static vec3 particles_spawn_randomness{0.15, 0.15, 0.15};
+static float particles_spawn_speed = 3.5;
 static float particle_spawn_life = 5;
 static float particle_added_spawn_life_randomness = 0.8;
 static int particle_number = 100000;
