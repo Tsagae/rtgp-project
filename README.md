@@ -70,6 +70,8 @@ git cmake g++ glfw-devel assimp-devel glm-devel
 
 ## Running
 
+Models and textures can be added respectively to assets/models and assets/textures and will automatically appear in the menu after a restart of the application
+
 ### Options
 
 - `RTGP-Project [width] [height]` - Run the program with a custom resolution (without arguments defaults to 1920x1080)
