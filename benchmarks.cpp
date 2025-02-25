@@ -119,43 +119,58 @@ static void BM_SpawnAndReplaceParticles_100k_20k(benchmark::State& state)
     SpawnAndReplaceParticles(state, N_100k, 20000);
 }
 
-static void DrawParticles(benchmark::State& state, const int particle_number)
+static void DrawParticles(benchmark::State& state, const int max_particles, const int particle_number)
 {
     Camera camera{};
     Renderer renderer(camera, 1920, 1080);
     renderer.init(true);
-    auto particles = Particles(particle_number, renderer.loadShader(
+    auto particles = Particles(max_particles, renderer.loadShader(
                                    "./src/shaders/billboard_particle.vert",
                                    "./src/shaders/billboard_particle.frag"), renderer);
-    for (auto i = 0; i < 1000; i++)
-    {
-        particles.spawnParticles(particle_number / 1000, glm::vec3{1},
-                                 default_start_velocity_func(),
-                                 default_start_life_func(),
-                                 glm::vec4{
-                                     255,
-                                     255,
-                                     255,
-                                     1
-                                 }, 0.1);
-    }
+    particles.spawnParticles(particle_number, glm::vec3{1},
+                             default_start_velocity_func(),
+                             default_start_life_func(),
+                             glm::vec4{
+                                 255,
+                                 255,
+                                 255,
+                                 1
+                             }, 0.1);
     for (auto _ : state)
+    {
         particles.drawParticles();
+        glFinish();
+    }
 }
 
 static void BM_DrawParticles_10k(benchmark::State& state)
 {
-    DrawParticles(state, N_10k);
+    DrawParticles(state, N_10k, N_10k);
 }
 
 static void BM_DrawParticles_100k(benchmark::State& state)
 {
-    DrawParticles(state, N_100k);
+    DrawParticles(state, N_100k, N_100k);
 }
 
 static void BM_DrawParticles_1M(benchmark::State& state)
 {
-    DrawParticles(state, N_1M);
+    DrawParticles(state, N_1M, N_1M);
+}
+
+static void BM_DrawHalfParticles_10k(benchmark::State& state)
+{
+    DrawParticles(state, N_10k, N_10k / 2);
+}
+
+static void BM_DrawHalfParticles_100k(benchmark::State& state)
+{
+    DrawParticles(state, N_100k, N_100k / 2);
+}
+
+static void BM_DrawHalfParticles_1M(benchmark::State& state)
+{
+    DrawParticles(state, N_1M, N_1M / 2);
 }
 
 BENCHMARK(BM_UpdateParticles_1k)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
@@ -166,5 +181,8 @@ BENCHMARK(BM_SpawnAndReplaceParticles_100k_20k)->Setup(DoSetup)->Unit(benchmark:
 BENCHMARK(BM_DrawParticles_10k)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_DrawParticles_100k)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_DrawParticles_1M)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_DrawHalfParticles_10k)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_DrawHalfParticles_100k)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_DrawHalfParticles_1M)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
 
 BENCHMARK_MAIN();
