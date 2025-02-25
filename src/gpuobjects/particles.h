@@ -166,9 +166,9 @@ public:
     void drawParticles()
     {
         glBindBuffer(GL_ARRAY_BUFFER, particles_data_buffer);
-        glBufferData(GL_ARRAY_BUFFER, maxParticles * sizeof(Particle), nullptr, GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, livingParticles * sizeof(Particle), nullptr, GL_STREAM_DRAW);
         // Buffer orphaning, a common way to improve streaming perf
-        glBufferSubData(GL_ARRAY_BUFFER, 0, maxParticles * sizeof(Particle), &particles[0]);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, livingParticles * sizeof(Particle), &particles[0]);
 
         shader.use();
         glUniformMatrix4fv(glGetUniformLocation(shader.program(), "projectionMatrix"), 1, GL_FALSE,
