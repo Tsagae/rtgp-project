@@ -130,7 +130,7 @@ public:
                                                  glm::vec3{disappearing_object_scale});
         sc_disappearingModel.worldSpaceTransform = translate(glm::mat4{1}, disappearing_object_position);
         re_disappearingModel.threshold(re_disappearingModel.threshold() + 0.1f * dt);
-        particles.updateParticles(renderer.getCamera().position(), dt, particles_update_func);
+        particles.updateParticles(dt, particles_update_func);
     }
 
 private:

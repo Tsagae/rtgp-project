@@ -70,21 +70,6 @@ public:
             _life = newLife;
         }
 
-        [[nodiscard]] float cameraDistance() const
-        {
-            return _cameraDistance;
-        }
-
-        void cameraDistance(const float newCameraDistance)
-        {
-            _cameraDistance = newCameraDistance;
-        }
-
-        bool operator<(const Particle& that) const
-        {
-            return this->_cameraDistance > that._cameraDistance;
-        }
-
     private:
         GLfloat raw_data[8]{};
         /*
@@ -95,7 +80,6 @@ public:
         */
         glm::vec3 _velocity{};
         float _life{};
-        float _cameraDistance{}; // *Squared* distance to the camera. if dead : -1.0f
     };
 
     explicit Particles(const GLuint maxParticles, const Shader& shader, const Renderer& renderer)
@@ -160,8 +144,7 @@ public:
         }
     }
 
-    void updateParticles(const glm::vec3 cameraPosition, const float dt,
-                         const std::function<void(Particle&, float dt)>& updateFunc)
+    void updateParticles(const float dt, const std::function<void(Particle&, float dt)>& updateFunc)
     {
         for (auto i = 0; i < livingParticles; i++)
         {
@@ -170,24 +153,18 @@ public:
             if (p.life() < 0)
             {
                 livingParticles--;
-                p.cameraDistance(-1);
                 std::swap(particles[i], particles[livingParticles]);
                 i--;
             }
             else
             {
                 updateFunc(p, dt);
-                const auto d = p.pos() - cameraPosition;
-                p.cameraDistance(dot(d, d));
             }
         }
     }
 
     void drawParticles()
     {
-        const unsigned long index = static_cast<unsigned long>(std::min(static_cast<unsigned long>(livingParticles), static_cast<unsigned long>(particles.size()-1)));
-        std::sort(&particles[0], &particles[index]);
-
         glBindBuffer(GL_ARRAY_BUFFER, particles_data_buffer);
         glBufferData(GL_ARRAY_BUFFER, maxParticles * sizeof(Particle), nullptr, GL_STREAM_DRAW);
         // Buffer orphaning, a common way to improve streaming perf

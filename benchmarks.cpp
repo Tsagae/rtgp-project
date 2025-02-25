@@ -64,7 +64,7 @@ static void UpdateFixedParticles(benchmark::State& state, const int particle_num
     }
     for (auto _ : state)
     {
-        particles.updateParticles(glm::vec3{0.f}, 0, default_particles_update_func);
+        particles.updateParticles(0, default_particles_update_func);
     }
 }
 
@@ -110,7 +110,7 @@ static void SpawnAndReplaceParticles(benchmark::State& state, const int particle
                                      255,
                                      1
                                  }, 0.1);
-        particles.updateParticles(glm::vec3{0.f}, 0.5, default_particles_update_func);
+        particles.updateParticles(0.5, default_particles_update_func);
     }
 }
 
