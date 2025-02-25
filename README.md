@@ -43,13 +43,13 @@ cmake --build .\build
 - Ubuntu
 
 ```
-git cmake g++ libglfw3-dev libassimp-dev libglm-dev
+git cmake g++ libglfw3-dev libassimp-dev libglm-dev libbenchmark-dev
 ```
 
 - Fedora
 
 ```
-git cmake g++ glfw-devel assimp-devel glm-devel
+git cmake g++ glfw-devel assimp-devel glm-devel google-benchmark-devel
 ```
 
 #### Compilation

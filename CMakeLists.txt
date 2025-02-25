@@ -3,6 +3,7 @@ project(RTGP-Project)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${RTGP-Project_SOURCE_DIR})
+set(BUILD_BENCHMARKS ON CACHE BOOL "Build the benchmarks executable")
 
 include_directories(imgui)
 include_directories(imgui/backends)
@@ -27,13 +28,30 @@ add_executable(RTGP-Project
         "imguizmo/imGuIZMO.quat/imGuIZMOquat.cpp"
 )
 
+if(BUILD_BENCHMARKS)
+    add_executable(Benchmarks-RTGP-Project
+            benchmarks.cpp
+            "include/glad/glad.c"
+)
+endif()
+
 if (WIN32)
     message("Windows specific configuration")
     target_link_libraries(RTGP-Project PRIVATE glfw)
     target_link_libraries(RTGP-Project PRIVATE assimp::assimp)
     target_link_libraries(RTGP-Project PRIVATE glm::glm-header-only)
+    if(BUILD_BENCHMARKS)
+        target_link_libraries(Benchmarks-RTGP-Project PRIVATE glfw)
+        target_link_libraries(Benchmarks-RTGP-Project PRIVATE assimp::assimp)
+        target_link_libraries(Benchmarks-RTGP-Project PRIVATE glm::glm-header-only)
+    endif()
 elseif (UNIX)
     message("Linux specific configuration")
     target_link_libraries(RTGP-Project -lglfw)
     target_link_libraries(RTGP-Project -lassimp)
+    if(BUILD_BENCHMARKS)
+        target_link_libraries(Benchmarks-RTGP-Project -lglfw)
+        target_link_libraries(Benchmarks-RTGP-Project -lassimp)
+        target_link_libraries(Benchmarks-RTGP-Project -lbenchmark)
+    endif()
 endif ()

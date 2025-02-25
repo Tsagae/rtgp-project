@@ -22,7 +22,7 @@ public:
     {
     }
 
-    int init()
+    int init(const bool no_window = false)
     {
         glfwInit();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -31,6 +31,9 @@ public:
         //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
         glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+
+        if (no_window)
+            glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
         _window = glfwCreateWindow(_screenWidth, _screenHeight, "RTGP-Project", nullptr, nullptr);
         if (!_window)
