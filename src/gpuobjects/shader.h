@@ -37,7 +37,6 @@ public:
         const GLuint vertexShader = compileVertexShader(vertexPath);
         // Step 3: Shader Program creation
         this->_program = glCreateProgram();
-        std::cout << "Program created: " << this->_program << std::endl;
         glAttachShader(this->_program, vertexShader);
         glAttachShader(this->_program, fragmentShader);
         glLinkProgram(this->_program);

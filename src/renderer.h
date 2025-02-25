@@ -96,10 +96,8 @@ public:
         if (iter == _shaders.end())
         {
             _shaders[joinedPath] = std::make_unique<Shader const>(vertexPath, fragmentPath);
-            std::cout << "shaders in memory: " << _shaders.size() << std::endl;
             return *_shaders[joinedPath].get();
         }
-        std::cout << "shaders in memory: " << _shaders.size() << std::endl;
         return *iter->second.get();
     }
 
