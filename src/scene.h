@@ -85,6 +85,8 @@ public:
             pboDepthRBuf.bind();
             const auto depth = reinterpret_cast<GLfloat*>(pboDepthRBuf.read());
             pboDepthRBuf.unbind();
+            FrameBuffer::unbind(renderer.screenWidth(), renderer.screenHeight());
+
             // Find pixels that are not black and spawn particles at their position
             for (auto i = 0; i < pboColorRBuf.bufferSize() / 4; i++)
             {
@@ -109,7 +111,6 @@ public:
                 }
             }
 
-            FrameBuffer::unbind(renderer.screenWidth(), renderer.screenHeight());
         });
         if (draw_particles)
         {
