@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.28)
 project(RTGP-Project)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -29,15 +29,17 @@ add_executable(RTGP-Project
 )
 
 if(BUILD_BENCHMARKS)
-    include(FindPkgConfig)
-    if(NOT PKG_CONFIG_FOUND)
-        message(FATAL_ERROR "pkg-config not found!")
+    if (WIN32)
+        include(FindPkgConfig)
+        if(NOT PKG_CONFIG_FOUND)
+            message(FATAL_ERROR "pkg-config not found!")
+        endif()
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(benchmark REQUIRED IMPORTED_TARGET GLOBAL benchmark)
     endif()
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(benchmark REQUIRED IMPORTED_TARGET GLOBAL benchmark)
     add_executable(Benchmarks-RTGP-Project
-            benchmarks.cpp
-            "include/glad/glad.c"
+        benchmarks.cpp
+        "include/glad/glad.c"
     )
 endif()
 
