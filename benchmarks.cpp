@@ -39,9 +39,20 @@ static auto default_start_life_func = []
     return particle_spawn_life;
 };
 
+
+void error_callback(int code, const char* description)
+{
+    std::cout << "GLFW Error: " << code << " " << description << std::endl;
+}
+
 static void DoSetup(const benchmark::State& state)
 {
     randInit();
+    glfwSetErrorCallback(error_callback);
+}
+
+static void DoTearDown(const benchmark::State& state)
+{
 }
 
 static void BM_UpdateParticles(benchmark::State& state)
@@ -396,8 +407,10 @@ static void BM_Pipeline_Complete(benchmark::State& state)
     }
 }
 
-BENCHMARK(BM_UpdateParticles)->RangeMultiplier(2)->Range(512, N_1M)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_SpawnAndReplaceParticles)->Args({N_100k, 20000})->Setup(DoSetup)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_UpdateParticles)->RangeMultiplier(2)->Range(512, N_1M)->Setup(DoSetup)->Teardown(DoTearDown)->Unit(
+    benchmark::kMillisecond);
+BENCHMARK(BM_SpawnAndReplaceParticles)->Args({N_100k, 20000})->Setup(DoSetup)->Teardown(DoTearDown)->Unit(
+    benchmark::kMillisecond);
 BENCHMARK(BM_DrawParticles)->Name("BM_DrawParticles(#particles/max)")->
                              ArgsProduct({
                                  benchmark::CreateRange(N_1k, N_100k, 2),
@@ -405,15 +418,21 @@ BENCHMARK(BM_DrawParticles)->Name("BM_DrawParticles(#particles/max)")->
                              })->ArgsProduct({
                                  benchmark::CreateRange(N_1k, N_1M, 2),
                                  {N_1M}
-                             })->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_CopyFrameBuffer)->Args({800, 600})->Args({1280, 720})->Args({1920, 1080})->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_ReadFrameBuffer)->Args({800, 600})->Args({1280, 720})->Args({1920, 1080})->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_Pipeline_Step_0)->Name("Pipeline step 0: draw particles pixels to off-screen buffer (screen w/screen h)")->
-                               ArgsProduct({{1920}, {1080}})->Setup(DoSetup)->Unit(benchmark::kMillisecond);
+                             })->Setup(DoSetup)->Teardown(DoTearDown)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_CopyFrameBuffer)->Args({800, 600})->Args({1280, 720})->Args({1920, 1080})->Setup(DoSetup)->
+                               Teardown(DoTearDown)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_ReadFrameBuffer)->Args({800, 600})->Args({1280, 720})->Args({1920, 1080})->Setup(DoSetup)->
+                               Teardown(DoTearDown)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_Pipeline_Step_0)->
+Name("Pipeline step 0: draw particles pixels to off-screen buffer (screen w/screen h/particle buf w/particle buf h)")->
+ArgsProduct({
+                                 {1920}, {1080}
+                             })->
+                             Setup(DoSetup)->Teardown(DoTearDown)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_Pipeline_Step_1)->Name("Pipeline step 1: draw disappearing model (screen w/screen h)")->ArgsProduct({
                                    {1920}, {1080}
                                })->
-                               Setup(DoSetup)->Unit(benchmark::kMillisecond);
+                               Setup(DoSetup)->Teardown(DoTearDown)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_Pipeline_Step_2)->Name(
                                  "Pipeline step 2: read off-screen buffer and spawn particles (screen w/screen h/particle buf w/particle buf h)")
                              ->
@@ -438,7 +457,7 @@ BENCHMARK(BM_Pipeline_Step_2)->Name(
                                  {1080},
                                  {6},
                                  benchmark::CreateDenseRange(1, 6, 1),
-                             })->Setup(DoSetup)->Unit(
+                             })->Setup(DoSetup)->Teardown(DoTearDown)->Unit(
                                  benchmark::kMillisecond);
 BENCHMARK(BM_Pipeline_Step_3)->Name(
     "Pipeline step 3: draw particles (screen w/screen h/particle buf w/particle buf h)")->ArgsProduct({
@@ -462,7 +481,7 @@ BENCHMARK(BM_Pipeline_Step_3)->Name(
     {1080},
     {6},
     benchmark::CreateDenseRange(1, 6, 1),
-})->Setup(DoSetup)->Unit(
+})->Setup(DoSetup)->Teardown(DoTearDown)->Unit(
     benchmark::kMillisecond);
 BENCHMARK(BM_Pipeline_Complete)->Name(
     "Complete pipeline: (screen w/screen h/particle buf w/particle buf h)")->ArgsProduct({
@@ -486,7 +505,7 @@ BENCHMARK(BM_Pipeline_Complete)->Name(
     {1080},
     {6},
     benchmark::CreateDenseRange(1, 6, 1),
-})->Setup(DoSetup)->Unit(
+})->Setup(DoSetup)->Teardown(DoTearDown)->Unit(
     benchmark::kMillisecond);
 
 
