@@ -196,6 +196,7 @@ public:
         _models.clear();
         _shaders.clear();
         _textures.clear();
+        glfwMakeContextCurrent(nullptr);
         glfwTerminate(); // shaders, models and textures need to be destructed BEFORE calling this
     }
 
