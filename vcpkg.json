@@ -1,7 +1,9 @@
 {
   "dependencies": [
+    "pkgconf",
     "assimp",
     "glfw3",
-    "glm"
+    "glm",
+    "benchmark"
   ]
 }

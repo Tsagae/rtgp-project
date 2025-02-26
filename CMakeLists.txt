@@ -29,10 +29,16 @@ add_executable(RTGP-Project
 )
 
 if(BUILD_BENCHMARKS)
+    include(FindPkgConfig)
+    if(NOT PKG_CONFIG_FOUND)
+        message(FATAL_ERROR "pkg-config not found!")
+    endif()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(benchmark REQUIRED IMPORTED_TARGET GLOBAL benchmark)
     add_executable(Benchmarks-RTGP-Project
             benchmarks.cpp
             "include/glad/glad.c"
-)
+    )
 endif()
 
 if (WIN32)
@@ -44,6 +50,7 @@ if (WIN32)
         target_link_libraries(Benchmarks-RTGP-Project PRIVATE glfw)
         target_link_libraries(Benchmarks-RTGP-Project PRIVATE assimp::assimp)
         target_link_libraries(Benchmarks-RTGP-Project PRIVATE glm::glm-header-only)
+        target_link_libraries(Benchmarks-RTGP-Project PRIVATE PkgConfig::benchmark)
     endif()
 elseif (UNIX)
     message("Linux specific configuration")
