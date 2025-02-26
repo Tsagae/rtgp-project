@@ -128,13 +128,16 @@ static void BM_DrawParticles(benchmark::State& state)
     }
 }
 
-static void CopyFrameBuffer(benchmark::State& state, const GLuint width, const GLuint height)
+static void BM_CopyFrameBuffer(benchmark::State& state)
 {
+    const auto w_resolution = static_cast<int>(state.range(0));
+    const auto h_resolution = static_cast<int>(state.range(1));
+
     Camera camera{};
     Renderer renderer(camera, 1920, 1080);
     renderer.init(true);
 
-    FrameBuffer disappearingFragmentsFb(width, height);
+    FrameBuffer disappearingFragmentsFb(w_resolution, h_resolution);
     PboReadBuffer pboColorRBuf{disappearingFragmentsFb.createPboReadColorBuffer()};
     PboReadBuffer pboDepthRBuf{disappearingFragmentsFb.createPboReadDepthBuffer()};
 
@@ -150,16 +153,6 @@ static void CopyFrameBuffer(benchmark::State& state, const GLuint width, const G
         FrameBuffer::unbind(renderer.screenWidth(), renderer.screenHeight());
         glFinish();
     }
-}
-
-static void BM_CopyFrameBuffer_800_600(benchmark::State& state)
-{
-    CopyFrameBuffer(state, 800, 600);
-}
-
-static void BM_CopyFrameBuffer_1920_1080(benchmark::State& state)
-{
-    CopyFrameBuffer(state, 800, 600);
 }
 
 static void BM_Pipeline_Step_0(benchmark::State& state)
@@ -336,8 +329,7 @@ BENCHMARK(BM_DrawParticles)->Name("BM_DrawParticles(#particles/max)")->
                                  benchmark::CreateRange(N_1k, N_1M, 2),
                                  {N_1M}
                              })->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_CopyFrameBuffer_800_600)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_CopyFrameBuffer_1920_1080)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_CopyFrameBuffer)->Args({800, 600})->Args({1280, 720})->Args({1920, 1080})->Setup(DoSetup)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_Pipeline_Step_0)->Name("Pipeline step 0: draw particles pixels to off-screen buffer (screen w/screen h)")->
                                ArgsProduct({{1920}, {1080}})->Setup(DoSetup)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_Pipeline_Step_1)->Name("Pipeline step 1: draw disappearing model (screen w/screen h)")->ArgsProduct({
