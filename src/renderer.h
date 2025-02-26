@@ -196,6 +196,7 @@ public:
         _models.clear();
         _shaders.clear();
         _textures.clear();
+        glfwDestroyWindow(_window);
         glfwMakeContextCurrent(nullptr);
         glfwTerminate(); // shaders, models and textures need to be destructed BEFORE calling this
     }
