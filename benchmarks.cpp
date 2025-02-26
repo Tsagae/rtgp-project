@@ -162,6 +162,77 @@ static void BM_CopyFrameBuffer_1920_1080(benchmark::State& state)
     CopyFrameBuffer(state, 800, 600);
 }
 
+static void BM_Pipeline_Step_0(benchmark::State& state)
+{
+    const auto w_resolution = static_cast<int>(state.range(0));
+    const auto h_resolution = static_cast<int>(state.range(1));
+
+    Camera camera{};
+    Renderer renderer(camera, w_resolution, h_resolution);
+    renderer.init(true);
+    renderer.setProjectionMatrix(glm::perspective(
+        45.0f, static_cast<float>(renderer.screenWidth()) / static_cast<float>(renderer.screenHeight()),
+        0.1f, 10000.0f));
+    camera.setTransform(inverse(lookAt(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(0.0f, 0.0f, -7.0f),
+                                       glm::vec3(0.0f, 1.0f, 0.0f))));
+    auto scene = Scene(renderer, "./assets/models/plane.obj", "./assets/textures/UV_Grid_Sm.png",
+                       "./assets/textures/Voronoi 7 - 512x512.png", N_100k,
+                       800, 600);
+    scene.particles_update_func = default_particles_update_func;
+    scene.start_life_func = default_start_life_func;
+    scene.start_velocity_func = default_start_velocity_func;
+    scene.disappearing_object_scale = 2;
+    scene.disappearing_object_rotation = glm::rotate(glm::radians(90.f), glm::vec3{1.f, 0.f, 0.f});
+    scene.init(false, 1);
+    scene.mainLoop(100);
+    const auto pipeline = renderer.getPipeline();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    for (auto _ : state)
+    {
+        pipeline[0]();
+        glFinish();
+    }
+}
+
+static void BM_Pipeline_Step_1(benchmark::State& state)
+{
+    const auto w_resolution = static_cast<int>(state.range(0));
+    const auto h_resolution = static_cast<int>(state.range(1));
+
+    Camera camera{};
+    Renderer renderer(camera, w_resolution, h_resolution);
+    renderer.init(true);
+    renderer.setProjectionMatrix(glm::perspective(
+        45.0f, static_cast<float>(renderer.screenWidth()) / static_cast<float>(renderer.screenHeight()),
+        0.1f, 10000.0f));
+    camera.setTransform(inverse(lookAt(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(0.0f, 0.0f, -7.0f),
+                                       glm::vec3(0.0f, 1.0f, 0.0f))));
+    auto scene = Scene(renderer, "./assets/models/plane.obj", "./assets/textures/UV_Grid_Sm.png",
+                       "./assets/textures/Voronoi 7 - 512x512.png", N_100k,
+                       800, 600);
+    scene.particles_update_func = default_particles_update_func;
+    scene.start_life_func = default_start_life_func;
+    scene.start_velocity_func = default_start_velocity_func;
+    scene.disappearing_object_scale = 2;
+    scene.disappearing_object_rotation = glm::rotate(glm::radians(90.f), glm::vec3{1.f, 0.f, 0.f});
+    scene.init(false, 1);
+    scene.mainLoop(0);
+    const auto pipeline = renderer.getPipeline();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    for (auto _ : state)
+    {
+        state.PauseTiming();
+        glFlush();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glFinish();
+        state.ResumeTiming();
+
+        pipeline[1]();
+        glFinish();
+    }
+}
+
+
 static void BM_Pipeline_Step_2(benchmark::State& state)
 {
     const auto w_resolution = static_cast<int>(state.range(0));
@@ -187,7 +258,7 @@ static void BM_Pipeline_Step_2(benchmark::State& state)
     scene.start_velocity_func = default_start_velocity_func;
     scene.disappearing_object_scale = scale;
     scene.disappearing_object_rotation = glm::rotate(glm::radians(90.f), glm::vec3{1.f, 0.f, 0.f});
-    scene.init(false, 1);
+    scene.init(false, 0.1);
     scene.mainLoop(100);
     const auto pipeline = renderer.getPipeline();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -208,6 +279,53 @@ static void BM_Pipeline_Step_2(benchmark::State& state)
     }
 }
 
+static void BM_Pipeline_Step_3(benchmark::State& state)
+{
+    const auto w_resolution = static_cast<int>(state.range(0));
+    const auto h_resolution = static_cast<int>(state.range(1));
+    const auto buf_w_resolution = static_cast<GLuint>(state.range(2));
+    const auto buf_h_resolution = static_cast<GLuint>(state.range(3));
+    const auto divide_scale = static_cast<float>(state.range(4));
+    const auto scale = static_cast<float>(state.range(5)) / divide_scale;
+
+    Camera camera{};
+    Renderer renderer(camera, w_resolution, h_resolution);
+    renderer.init(true);
+    renderer.setProjectionMatrix(glm::perspective(
+        45.0f, static_cast<float>(renderer.screenWidth()) / static_cast<float>(renderer.screenHeight()),
+        0.1f, 10000.0f));
+    camera.setTransform(inverse(lookAt(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(0.0f, 0.0f, -7.0f),
+                                       glm::vec3(0.0f, 1.0f, 0.0f))));
+    auto scene = Scene(renderer, "./assets/models/plane.obj", "./assets/textures/UV_Grid_Sm.png",
+                       "./assets/textures/Voronoi 7 - 512x512.png", N_100k,
+                       buf_w_resolution, buf_h_resolution);
+    scene.particles_update_func = default_particles_update_func;
+    scene.start_life_func = default_start_life_func;
+    scene.start_velocity_func = default_start_velocity_func;
+    scene.disappearing_object_scale = scale;
+    scene.disappearing_object_rotation = glm::rotate(glm::radians(90.f), glm::vec3{1.f, 0.f, 0.f});
+    scene.init(true, 0.1);
+    scene.mainLoop(100);
+    const auto pipeline = renderer.getPipeline();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    pipeline[0]();
+    pipeline[1]();
+    pipeline[2]();
+    pipeline[3]();
+    state.SetLabel("particles spawned: " + std::to_string(scene.particles.livingParticles));
+    for (auto _ : state)
+    {
+        state.PauseTiming();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glFinish();
+        state.ResumeTiming();
+
+        pipeline[3]();
+        glFinish();
+    }
+}
+
+
 BENCHMARK(BM_UpdateParticles)->RangeMultiplier(2)->Range(512, N_1M)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_SpawnAndReplaceParticles)->Args({N_100k, 20000})->Setup(DoSetup)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_DrawParticles)->Name("BM_DrawParticles(#particles/max)")->
@@ -220,8 +338,40 @@ BENCHMARK(BM_DrawParticles)->Name("BM_DrawParticles(#particles/max)")->
                              })->Setup(DoSetup)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_CopyFrameBuffer_800_600)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_CopyFrameBuffer_1920_1080)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_Pipeline_Step_0)->Name("Pipeline step 0: draw particles pixels to off-screen buffer (screen w/screen h)")->
+                               ArgsProduct({{1920}, {1080}})->Setup(DoSetup)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_Pipeline_Step_1)->Name("Pipeline step 1: draw disappearing model (screen w/screen h)")->ArgsProduct({
+                                   {1920}, {1080}
+                               })->
+                               Setup(DoSetup)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_Pipeline_Step_2)->Name(
-    "BM_Pipeline_Step_2(screen width/screen height/particle buffer width/particle buffer height)")->ArgsProduct({
+                                 "Pipeline step 2: read off-screen buffer and spawn particles (screen w/screen h/particle buf w/particle buf h)")
+                             ->
+                             ArgsProduct({
+                                 {1920},
+                                 {1080},
+                                 {800},
+                                 {600},
+                                 {3},
+                                 benchmark::CreateDenseRange(1, 6, 1)
+                             })->ArgsProduct({
+                                 {1920},
+                                 {1080},
+                                 {1280},
+                                 {720},
+                                 {4},
+                                 benchmark::CreateDenseRange(1, 6, 1),
+                             })->ArgsProduct({
+                                 {1920},
+                                 {1080},
+                                 {1920},
+                                 {1080},
+                                 {6},
+                                 benchmark::CreateDenseRange(1, 6, 1),
+                             })->Setup(DoSetup)->Unit(
+                                 benchmark::kMillisecond);
+BENCHMARK(BM_Pipeline_Step_3)->Name(
+    "Pipeline step 3: draw particles (screen w/screen h/particle buf w/particle buf h)")->ArgsProduct({
     {1920},
     {1080},
     {800},
@@ -244,5 +394,6 @@ BENCHMARK(BM_Pipeline_Step_2)->Name(
     benchmark::CreateDenseRange(1, 6, 1),
 })->Setup(DoSetup)->Unit(
     benchmark::kMillisecond);
+
 
 BENCHMARK_MAIN();
