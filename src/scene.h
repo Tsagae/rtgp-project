@@ -18,11 +18,17 @@ public:
     std::function<void(Particles::Particle&, float dt)> particles_update_func;
     std::function<glm::vec3()> start_velocity_func;
     std::function<float()> start_life_func;
+    Particles particles;
 
     explicit Scene(Renderer& renderer, const string& disappearing_model, const string& texture,
                    const string& noise_texture, const int particle_number, const GLuint particles_framebuffer_width,
                    const GLuint particles_framebuffer_height)
-        : renderer(renderer),
+        : particles{
+              Particles(particle_number, renderer.loadShader(
+                            "./src/shaders/billboard_particle.vert",
+                            "./src/shaders/billboard_particle.frag"), renderer)
+          },
+          renderer(renderer),
           re_disappearingModel(
               renderer.loadShader("./src/shaders/apply_texture.vert", "./src/shaders/disappearing_mesh.frag"),
               renderer,
@@ -34,11 +40,6 @@ public:
           disappearingFragmentsFb(particles_framebuffer_width, particles_framebuffer_height),
           pboColorRBuf{disappearingFragmentsFb.createPboReadColorBuffer()},
           debugBuffer(renderer, 1, 1),
-          particles{
-              Particles(particle_number, renderer.loadShader(
-                            "./src/shaders/billboard_particle.vert",
-                            "./src/shaders/billboard_particle.frag"), renderer)
-          },
           pboDepthRBuf{disappearingFragmentsFb.createPboReadDepthBuffer()}
     {
     }
@@ -81,36 +82,64 @@ public:
             disappearingFragmentsFb.bind();
             pboColorRBuf.bind();
             const auto pixels = reinterpret_cast<glm::u8vec4*>(pboColorRBuf.read());
+            const auto pixels_size_t = reinterpret_cast<size_t*>(pixels);
             pboColorRBuf.unbind();
             pboDepthRBuf.bind();
             const auto depth = reinterpret_cast<GLfloat*>(pboDepthRBuf.read());
             pboDepthRBuf.unbind();
             FrameBuffer::unbind(renderer.screenWidth(), renderer.screenHeight());
 
+            const auto inverse_mat = inverse(renderer.projectionMatrix() * renderer.viewMatrix());
             // Find pixels that are not black and spawn particles at their position
-            for (auto i = 0; i < pboColorRBuf.bufferSize() / 4; i++)
+            const unsigned long num_of_words = pboColorRBuf.bufferSize() / 8;
+            constexpr auto zero_vec3 = glm::vec3{0};
+            const auto w = disappearingFragmentsFb.width();
+            const auto h = disappearingFragmentsFb.height();
+
+            for (auto j = 0; j < num_of_words; j++)
             {
-                if (const auto pixel = pixels[i]; glm::u8vec3{pixel.x, pixel.y, pixel.z} != glm::u8vec3{0})
+                if (pixels_size_t[j] != 0)
                 {
-                    const auto x = 2 * (static_cast<GLfloat>(i % disappearingFragmentsFb.width()) / static_cast<GLfloat>
-                        (disappearingFragmentsFb.width())) - 1;
-                    const auto y = 2 * (static_cast<GLfloat>(i / disappearingFragmentsFb.width()) / static_cast<GLfloat>
-                        (disappearingFragmentsFb.height())) - 1;
-                    const auto pixelNDC = glm::vec4{x, y, depth[i] * depth[i], 1};
-                    auto worldSpacePos = inverse(renderer.projectionMatrix() * renderer.viewMatrix()) * pixelNDC;
-                    worldSpacePos /= worldSpacePos.w;
-                    particles.spawnParticles(1, glm::vec3{worldSpacePos.x, worldSpacePos.y, worldSpacePos.z},
-                                             start_velocity_func(),
-                                             start_life_func(),
-                                             glm::vec4{
-                                                 static_cast<GLfloat>(pixel.x) / 255.f,
-                                                 static_cast<GLfloat>(pixel.y) / 255.f,
-                                                 static_cast<GLfloat>(pixel.z) / 255.f,
-                                                 1
-                                             }, particle_size);
+                    unsigned long i = j * 2;
+                    if (const auto pixel = pixels[i]; glm::vec3{pixel.x, pixel.y, pixel.z} != zero_vec3)
+                    {
+                        const auto x = 2 * (static_cast<GLfloat>(i % w) / static_cast<GLfloat>(w)) - 1;
+                        const auto y = 2 * (static_cast<GLfloat>(i / w) / static_cast<GLfloat>(h)) - 1;
+                        const auto pixelNDC = glm::vec4{x, y, depth[i] * depth[i], 1};
+                        //std::cout << x << " " << y << " " << std::endl;
+                        auto worldSpacePos = inverse_mat * pixelNDC;
+                        worldSpacePos /= worldSpacePos.w;
+                        particles.spawnParticles(1, glm::vec3{worldSpacePos.x, worldSpacePos.y, worldSpacePos.z},
+                                                 start_velocity_func(), //TODO: change this with a "random" value from vector computed at the start of the function
+                                                 start_life_func(), //TODO: change this with a "random" value from vector computed at the start of the function
+                                                 glm::vec4{
+                                                     static_cast<GLfloat>(pixel.x) / 255.f,
+                                                     static_cast<GLfloat>(pixel.y) / 255.f,
+                                                     static_cast<GLfloat>(pixel.z) / 255.f,
+                                                     1
+                                                 }, particle_size);
+                    }
+                    i++;
+                    if (const auto pixel = pixels[i]; glm::vec3{pixel.x, pixel.y, pixel.z} != zero_vec3)
+                    {
+                        const auto x = 2 * (static_cast<GLfloat>(i % w) / static_cast<GLfloat>(w)) - 1;
+                        const auto y = 2 * (static_cast<GLfloat>(i / w) / static_cast<GLfloat>(h)) - 1;
+                        const auto pixelNDC = glm::vec4{x, y, depth[i] * depth[i], 1};
+                        //std::cout << x << " " << y << " " << std::endl;
+                        auto worldSpacePos = inverse_mat * pixelNDC;
+                        worldSpacePos /= worldSpacePos.w;
+                        particles.spawnParticles(1, glm::vec3{worldSpacePos.x, worldSpacePos.y, worldSpacePos.z},
+                                                 start_velocity_func(), //TODO: change this with a "random" value from vector computed at the start of the function
+                                                 start_life_func(), //TODO: change this with a "random" value from vector computed at the start of the function
+                                                 glm::vec4{
+                                                     static_cast<GLfloat>(pixel.x) / 255.f,
+                                                     static_cast<GLfloat>(pixel.y) / 255.f,
+                                                     static_cast<GLfloat>(pixel.z) / 255.f,
+                                                     1
+                                                 }, particle_size);
+                    }
                 }
             }
-
         });
         if (draw_particles)
         {
@@ -121,6 +150,7 @@ public:
                 glEnable(GL_CULL_FACE);
             });
         }
+
         renderer.setPipeline(p);
     }
 
@@ -140,7 +170,6 @@ private:
     FrameBuffer disappearingFragmentsFb;
     PboReadBuffer pboColorRBuf;
     DebugBuffer debugBuffer;
-    Particles particles;
     PboReadBuffer pboDepthRBuf;
     float angleY{0};
     float threshold{0};

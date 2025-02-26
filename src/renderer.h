@@ -120,6 +120,11 @@ public:
         _pipeline = std::move(newPipeline);
     }
 
+    const std::vector<function<void()>>& getPipeline()
+    {
+        return _pipeline;
+    }
+
     void computeDeltaTime()
     {
         _currentFrame = static_cast<GLfloat>(glfwGetTime());

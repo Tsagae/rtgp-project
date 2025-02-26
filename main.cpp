@@ -182,6 +182,7 @@ int main(int argc, char* argv[])
             cumulative_dt = 0;
             std::cout << "dt: " << dt * 1000 << "ms" << std::endl;
             std::cout << "FPS: " << 1 / dt << std::endl;
+            std::cout << "num of active particles: " << scene.particles.livingParticles << std::endl;
         }
         if (!pause)
         {

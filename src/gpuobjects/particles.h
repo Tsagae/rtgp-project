@@ -184,6 +184,11 @@ public:
         glBindVertexArray(0);
     }
 
+    void reset()
+    {
+        livingParticles = 0;
+    }
+
     [[nodiscard]] GLuint getMaxParticles() const
     {
         return maxParticles;
