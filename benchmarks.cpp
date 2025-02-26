@@ -8,10 +8,10 @@
 #include <gpuobjects/particles.h>
 #include <utils/random_utils.h>
 
-static constexpr float N_1k = 1000;
-static constexpr float N_10k = 10000;
-static constexpr float N_100k = 100000;
-static constexpr float N_1M = 1000000;
+static constexpr long N_1k = 1000;
+static constexpr long N_10k = 10000;
+static constexpr long N_100k = 100000;
+static constexpr long N_1M = 1000000;
 
 static glm::vec3 particles_spawn_direction{0.775614f, 0.441849f, -0.450769f};
 static glm::vec3 particles_spawn_randomness{0.15, 0.15, 0.15};
@@ -44,8 +44,10 @@ static void DoSetup(const benchmark::State& state)
     randInit();
 }
 
-static void UpdateFixedParticles(benchmark::State& state, const int particle_number)
+static void BM_UpdateParticles(benchmark::State& state)
 {
+    const auto particle_number = static_cast<int>(state.range(0));
+
     Camera camera{};
     Renderer renderer(camera, 1920, 1080);
     renderer.init(true);
@@ -70,28 +72,11 @@ static void UpdateFixedParticles(benchmark::State& state, const int particle_num
     }
 }
 
-static void BM_UpdateParticles_1k(benchmark::State& state)
+static void BM_SpawnAndReplaceParticles(benchmark::State& state)
 {
-    UpdateFixedParticles(state, N_1k);
-}
+    const auto particle_number = static_cast<int>(state.range(0));
+    const auto spawn_rate = static_cast<int>(state.range(1));
 
-static void BM_UpdateParticles_10k(benchmark::State& state)
-{
-    UpdateFixedParticles(state, N_10k);
-}
-
-static void BM_UpdateParticles_100k(benchmark::State& state)
-{
-    UpdateFixedParticles(state, N_100k);
-}
-
-static void BM_UpdateParticles_1M(benchmark::State& state)
-{
-    UpdateFixedParticles(state, N_1M);
-}
-
-static void SpawnAndReplaceParticles(benchmark::State& state, const int particle_number, const int spawn_rate)
-{
     Camera camera{};
     Renderer renderer(camera, 1920, 1080);
     renderer.init(true);
@@ -116,13 +101,11 @@ static void SpawnAndReplaceParticles(benchmark::State& state, const int particle
     }
 }
 
-static void BM_SpawnAndReplaceParticles_100k_20k(benchmark::State& state)
+static void BM_DrawParticles(benchmark::State& state)
 {
-    SpawnAndReplaceParticles(state, N_100k, 20000);
-}
+    const auto particle_number = static_cast<int>(state.range(0));
+    const auto max_particles = static_cast<int>(state.range(1));
 
-static void DrawParticles(benchmark::State& state, const int max_particles, const int particle_number)
-{
     Camera camera{};
     Renderer renderer(camera, 1920, 1080);
     renderer.init(true);
@@ -143,36 +126,6 @@ static void DrawParticles(benchmark::State& state, const int max_particles, cons
         particles.drawParticles();
         glFinish();
     }
-}
-
-static void BM_DrawParticles_10k(benchmark::State& state)
-{
-    DrawParticles(state, N_10k, N_10k);
-}
-
-static void BM_DrawParticles_100k(benchmark::State& state)
-{
-    DrawParticles(state, N_100k, N_100k);
-}
-
-static void BM_DrawParticles_1M(benchmark::State& state)
-{
-    DrawParticles(state, N_1M, N_1M);
-}
-
-static void BM_DrawHalfParticles_10k(benchmark::State& state)
-{
-    DrawParticles(state, N_10k, N_10k / 2);
-}
-
-static void BM_DrawHalfParticles_100k(benchmark::State& state)
-{
-    DrawParticles(state, N_100k, N_100k / 2);
-}
-
-static void BM_DrawHalfParticles_1M(benchmark::State& state)
-{
-    DrawParticles(state, N_1M, N_1M / 2);
 }
 
 static void CopyFrameBuffer(benchmark::State& state, const GLuint width, const GLuint height)
@@ -255,26 +208,33 @@ static void BM_Pipeline_Step_2(benchmark::State& state)
     }
 }
 
-BENCHMARK(BM_UpdateParticles_1k)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_UpdateParticles_10k)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_UpdateParticles_100k)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_UpdateParticles_1M)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_SpawnAndReplaceParticles_100k_20k)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_DrawParticles_10k)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_DrawParticles_100k)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_DrawParticles_1M)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_DrawHalfParticles_10k)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_DrawHalfParticles_100k)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_DrawHalfParticles_1M)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_UpdateParticles)->RangeMultiplier(2)->Range(512, N_1M)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_SpawnAndReplaceParticles)->Args({N_100k, 20000})->Setup(DoSetup)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_DrawParticles)->Name("BM_DrawParticles(#particles/max)")->
+                             ArgsProduct({
+                                 benchmark::CreateRange(N_1k, N_100k, 2),
+                                 {N_100k}
+                             })->ArgsProduct({
+                                 benchmark::CreateRange(N_1k, N_1M, 2),
+                                 {N_1M}
+                             })->Setup(DoSetup)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_CopyFrameBuffer_800_600)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_CopyFrameBuffer_1920_1080)->Setup(DoSetup)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_Pipeline_Step_2)->ArgsProduct({
+BENCHMARK(BM_Pipeline_Step_2)->Name(
+    "BM_Pipeline_Step_2(screen width/screen height/particle buffer width/particle buffer height)")->ArgsProduct({
     {1920},
     {1080},
     {800},
     {600},
     {3},
-    benchmark::CreateDenseRange(1, 6, 1), // Particles spawned: [2806]
+    benchmark::CreateDenseRange(1, 6, 1)
+})->ArgsProduct({
+    {1920},
+    {1080},
+    {1280},
+    {720},
+    {4},
+    benchmark::CreateDenseRange(1, 6, 1),
 })->ArgsProduct({
     {1920},
     {1080},
