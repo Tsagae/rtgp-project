@@ -425,13 +425,10 @@ BENCHMARK(BM_ReadFrameBuffer)->Args({800, 600})->Args({1280, 720})->Args({1920, 
                                Teardown(DoTearDown)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_Pipeline_Step_1)->
 Name("Pipeline step 1: draw particles pixels to off-screen buffer (screen w/screen h/particle buf w/particle buf h)")->
-ArgsProduct({
-                                 {1920}, {1080}
-                             })->
-                             Setup(DoSetup)->Teardown(DoTearDown)->Unit(benchmark::kMillisecond);
-BENCHMARK(BM_Pipeline_Step_2)->Name("Pipeline step 2: draw disappearing model (screen w/screen h)")->ArgsProduct({
-                                   {1920}, {1080}
-                               })->
+Args({800, 600})->Args({1280, 720})->Args({1920, 1080})->Setup(DoSetup)->Teardown(DoTearDown)->Unit(
+                                 benchmark::kMillisecond);
+BENCHMARK(BM_Pipeline_Step_2)->Name("Pipeline step 2: draw disappearing model (screen w/screen h)")->
+                               Args({800, 600})->Args({1280, 720})->Args({1920, 1080})->
                                Setup(DoSetup)->Teardown(DoTearDown)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_Pipeline_Step_3)->Name(
                                  "Pipeline step 3: read off-screen buffer and spawn particles (screen w/screen h/particle buf w/particle buf h)")
