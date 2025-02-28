@@ -83,6 +83,33 @@ static void BM_UpdateParticles(benchmark::State& state)
     }
 }
 
+static void BM_SpawnParticles(benchmark::State& state)
+{
+    const auto particle_number = static_cast<int>(state.range(0));
+
+    Camera camera{};
+    Renderer renderer(camera, 1920, 1080);
+    renderer.init(true);
+    auto particles = Particles(100000, renderer.loadShader(
+                                   "./src/shaders/billboard_particle.vert",
+                                   "./src/shaders/billboard_particle.frag"), renderer);
+    for (auto _ : state)
+    {
+        for (auto i = 0; i < particle_number; i++)
+        {
+            particles.spawnParticles(1, glm::vec3{1},
+                                     default_start_velocity_func(),
+                                     [i] { return static_cast<float>(i) / 2; }(),
+                                     glm::vec4{
+                                         255,
+                                         255,
+                                         255,
+                                         1
+                                     }, 0.1);
+        }
+    }
+}
+
 static void BM_SpawnAndReplaceParticles(benchmark::State& state)
 {
     const auto particle_number = static_cast<int>(state.range(0));
@@ -408,6 +435,8 @@ static void BM_Pipeline_Complete(benchmark::State& state)
 }
 
 BENCHMARK(BM_UpdateParticles)->RangeMultiplier(2)->Range(512, N_1M)->Setup(DoSetup)->Teardown(DoTearDown)->Unit(
+    benchmark::kMillisecond);
+BENCHMARK(BM_SpawnParticles)->RangeMultiplier(2)->Range(512, N_100k)->Setup(DoSetup)->Teardown(DoTearDown)->Unit(
     benchmark::kMillisecond);
 BENCHMARK(BM_SpawnAndReplaceParticles)->Args({N_100k, 20000})->Setup(DoSetup)->Teardown(DoTearDown)->Unit(
     benchmark::kMillisecond);
