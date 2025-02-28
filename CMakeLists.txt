@@ -5,6 +5,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${RTGP-Project_SOURCE_DIR})
 set(BUILD_BENCHMARKS ON CACHE BOOL "Build the benchmarks executable")
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
+endif ()
+
+message(CMAKE_CXX_FLAGS_DEBUG="${CMAKE_CXX_FLAGS_DEBUG}")
+message(CMAKE_CXX_FLAGS_RELEASE="${CMAKE_CXX_FLAGS_RELEASE}")
+message(CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}")
+
 include_directories(imgui)
 include_directories(imgui/backends)
 include_directories(imguizmo/imGuIZMO.quat)
