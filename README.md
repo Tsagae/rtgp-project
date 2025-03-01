@@ -17,6 +17,8 @@ The project consists in implementing a disintegrating mesh particle effect
 
 ### Windows
 
+#### Dependencies
+
 Install git and cmake
 
 Install [build tools for visual studio](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)
@@ -26,14 +28,21 @@ and check optional during installation:
 - c++ cmake tools for windows
 - Windows 10 sdk
 
-open cmd with "Launch" in visual studio build tools 2022 or from start "Developer powershell for VS 2022" and in the
+#### Compilation
+
+Open cmd with "Launch" in visual studio build tools 2022 or from start "Developer powershell for VS 2022" and in the
 root folder of the project run:
 
+```shell
+   git clone https://github.com/microsoft/vcpkg.git
+   cd vcpkg; .\bootstrap-vcpkg.bat -disableMetrics
+   cmake -DCMAKE_BUILD_TYPE=Release --preset=default
+   cmake --build .\build
 ```
-git clone https://github.com/microsoft/vcpkg.git
-cd vcpkg; .\bootstrap-vcpkg.bat -disableMetrics
-cmake -DCMAKE_BUILD_TYPE=Release --preset=default
-cmake --build .\build
+
+To not build the benchmark executable add `-DBUILD_BENCHMARK=OFF` to this cmake command:
+```shell
+   cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARK=OFF --preset=default
 ```
 
 ### Linux
@@ -42,13 +51,13 @@ cmake --build .\build
 
 - Ubuntu
 
-```
+```shell
 git cmake g++ libglfw3-dev libassimp-dev libglm-dev libbenchmark-dev
 ```
 
 - Fedora
 
-```
+```shell
 git cmake g++ glfw-devel assimp-devel glm-devel google-benchmark-devel
 ```
 
@@ -58,14 +67,19 @@ git cmake g++ glfw-devel assimp-devel glm-devel google-benchmark-devel
 
 ```shell
   cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" -S . -B ./cmake-build-debug
-  cmake --build ./cmake-build-debug
+  cmake --build ./cmake-build-debug -- -j 10
 ```
 
 - Release build
 
 ```shell
   cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" -S . -B ./cmake-build-release
-  cmake --build ./cmake-build-release
+  cmake --build ./cmake-build-release -- -j 10
+```
+
+To not build the benchmark executable add `-DBUILD_BENCHMARK=OFF` to this cmake command:
+```shell
+   cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARK=OFF -G "Unix Makefiles" -S . -B ./cmake-build-release
 ```
 
 ## Running
