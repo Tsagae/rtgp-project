@@ -109,6 +109,9 @@ Models and textures can be added respectively to assets/models and assets/textur
 The executable Benchmarks-RTGP-Project runs all benchmarks
 To run a subset of benchmarks: `--benchmark_filter=<regex>` [Benchamark library docs](https://github.com/google/benchmark/blob/main/docs/user_guide.md#running-a-subset-of-benchmarks)
 
+Note that running all the benchmarks sequentially can result in a crash on some configurations (Linux/AMD, not on windows).
+Running the single benchmarks does not result in a crash.
+
 List of benchmarks:
 - BM_UpdateParticles
 - BM_SpawnParticles
