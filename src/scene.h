@@ -119,13 +119,7 @@ public:
                         particles.spawnParticles(1, glm::vec3{worldSpacePos.x, worldSpacePos.y, worldSpacePos.z},
                                                  random_velocity_vector[spawned_particles % random_vectors_size],
                                                  random_life_vector[spawned_particles % random_vectors_size],
-                                                 glm::vec4{
-                                                     //TODO: store these as bytes and convert to float inside shader
-                                                     static_cast<GLfloat>(pixel.x) / 255.f,
-                                                     static_cast<GLfloat>(pixel.y) / 255.f,
-                                                     static_cast<GLfloat>(pixel.z) / 255.f,
-                                                     1
-                                                 }, particle_size);
+                                                 pixel, particle_size);
                         spawned_particles++;
                     }
                     i++;
@@ -139,13 +133,7 @@ public:
                         particles.spawnParticles(1, glm::vec3{worldSpacePos.x, worldSpacePos.y, worldSpacePos.z},
                                                  random_velocity_vector[spawned_particles % random_vectors_size],
                                                  random_life_vector[spawned_particles % random_vectors_size],
-                                                 glm::vec4{
-                                                     //TODO: store these as bytes and convert to float inside shader
-                                                     static_cast<GLfloat>(pixel.x) / 255.f,
-                                                     static_cast<GLfloat>(pixel.y) / 255.f,
-                                                     static_cast<GLfloat>(pixel.z) / 255.f,
-                                                     1
-                                                 }, particle_size);
+                                                 pixel, particle_size);
                         spawned_particles++;
                     }
                 }

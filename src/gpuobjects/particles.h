@@ -5,49 +5,55 @@ class Particles : NoCopy
 public:
     class Particle
     {
+        friend class Particles;
+
     public:
         Particle() = default;
 
-        Particle(const glm::vec3& pos, const glm::vec3& velocity, const float life, const glm::vec4& color,
+        Particle(const glm::vec3& pos, const glm::vec3& velocity, const float life, const glm::u8vec4& color,
                  const float size)
-            : raw_data{pos.x, pos.y, pos.z, size, color.r, color.g, color.b, color.a}, _velocity{velocity},
+            : _velocity{velocity},
               _life{life}
         {
+            this->pos(pos);
+            this->size(size);
+            this->color(color);
         }
 
         [[nodiscard]] glm::vec3 pos() const
         {
-            return glm::vec3{raw_data[0], raw_data[1], raw_data[2]};
+            glm::vec3 out_vec;
+            memcpy(&out_vec, &raw_data[POS_OFFSET], sizeof(glm::vec3));
+            return out_vec;
         }
 
         void pos(const glm::vec3& newPos)
         {
-            raw_data[0] = newPos.x;
-            raw_data[1] = newPos.y;
-            raw_data[2] = newPos.z;
+            memcpy(&raw_data[POS_OFFSET], &newPos, sizeof(glm::vec3));
         }
 
-        [[nodiscard]] float size() const
+        [[nodiscard]] GLfloat size() const
         {
-            return raw_data[3];
+            GLfloat out_size;
+            memcpy(&out_size, &raw_data[SIZE_OFFSET], sizeof(GLfloat));
+            return out_size;
         }
 
-        void size(const float newSize)
+        void size(const GLfloat newSize)
         {
-            raw_data[3] = newSize;
+            memcpy(&raw_data[SIZE_OFFSET], &newSize, sizeof(GLfloat));
         }
 
         [[nodiscard]] glm::vec4 color() const
         {
-            return glm::vec4{raw_data[4], raw_data[5], raw_data[6], raw_data[7]};
+            glm::u8vec4 out_color;
+            memcpy(&out_color, &raw_data[COLOR_OFFSET], sizeof(glm::u8vec4));
+            return out_color;
         }
 
-        void color(const glm::vec4& newColor)
+        void color(const glm::u8vec4& newColor)
         {
-            raw_data[4] = newColor.r;
-            raw_data[5] = newColor.g;
-            raw_data[6] = newColor.b;
-            raw_data[7] = newColor.a;
+            memcpy(&raw_data[COLOR_OFFSET], &newColor, sizeof(glm::u8vec4));
         }
 
         [[nodiscard]] const glm::vec3& velocity() const
@@ -71,12 +77,16 @@ public:
         }
 
     private:
-        GLfloat raw_data[8]{};
+        static constexpr unsigned int RAW_DATA_SIZE = sizeof(glm::vec3) + sizeof(GLfloat) + sizeof(glm::u8vec4);
+        static constexpr unsigned int POS_OFFSET = 0;
+        static constexpr unsigned int SIZE_OFFSET = sizeof(glm::vec3);
+        static constexpr unsigned int COLOR_OFFSET = sizeof(glm::vec3) + sizeof(GLfloat);
+        byte raw_data[RAW_DATA_SIZE]{};
         /*
         raw_data:
-            glm::vec3 pos{};
-            GLfloat size{};
-            glm::vec4 color{};
+            glm::vec3 pos{}; // 12 bytes
+            GLfloat size{}; // 4 bytes
+            glm::u8vec4 color{}; // 4 bytes
         */
         glm::vec3 _velocity{};
         float _life{};
@@ -108,11 +118,13 @@ public:
 
         glBindBuffer(GL_ARRAY_BUFFER, particles_data_buffer);
         glEnableVertexAttribArray(1); // Position, Size
-        glVertexAttribPointer(1, 4,GL_FLOAT,GL_FALSE, sizeof(Particle), nullptr);
+        glVertexAttribPointer(1, 4,GL_FLOAT,GL_FALSE, sizeof(Particle),
+                              reinterpret_cast<GLvoid*>(Particle::POS_OFFSET));
 
         glBindBuffer(GL_ARRAY_BUFFER, particles_data_buffer);
         glEnableVertexAttribArray(2); // Color
-        glVertexAttribPointer(2, 4,GL_FLOAT,GL_FALSE, sizeof(Particle), reinterpret_cast<GLvoid*>(sizeof(GLfloat) * 4));
+        glVertexAttribPointer(2, 4,GL_UNSIGNED_BYTE,GL_TRUE, sizeof(Particle),
+                              reinterpret_cast<GLvoid*>(Particle::COLOR_OFFSET));
 
         glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
         glVertexAttribDivisor(1, 1); // positions : one per quad (its center) -> 1
@@ -128,7 +140,7 @@ public:
     }
 
     void spawnParticles(const int n_of_particles, const glm::vec3& startPos, const glm::vec3& velocity,
-                        const float startLife, const glm::vec4 color, const float size)
+                        const float startLife, const glm::u8vec4 color, const float size)
     {
         const int deadParticles = particles.size() - livingParticles;
         const auto particles_to_spawn = glm::min(deadParticles, n_of_particles);

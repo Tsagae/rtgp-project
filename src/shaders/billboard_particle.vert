@@ -12,7 +12,7 @@ out vec4 ParticleColor;
 
 void main()
 {
-    ParticleColor = color;
+    ParticleColor = vec4(vec3(color), 1);
     gl_Position = projectionMatrix * viewMatrix * vec4(
         cameraOrientation[0] * (vertex_position.x * position_in_space.w) + cameraOrientation[1] * (vertex_position.y * position_in_space.w) + position_in_space.xyz
     , 1.0f);
