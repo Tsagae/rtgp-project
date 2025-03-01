@@ -95,7 +95,15 @@ public:
             constexpr auto zero_vec3 = glm::vec3{0};
             const auto w = disappearingFragmentsFb.width();
             const auto h = disappearingFragmentsFb.height();
+            random_life_vector.clear();
+            random_velocity_vector.clear();
+            for (auto i = 0; i < random_vectors_size; i++)
+            {
+                random_life_vector.emplace_back(start_life_func());
+                random_velocity_vector.emplace_back(start_velocity_func());
+            }
 
+            unsigned int spawned_particles = 0;
             for (auto j = 0; j < num_of_words; j++)
             {
                 if (pixels_size_t[j] != 0)
@@ -106,18 +114,19 @@ public:
                         const auto x = 2 * (static_cast<GLfloat>(i % w) / static_cast<GLfloat>(w)) - 1;
                         const auto y = 2 * (static_cast<GLfloat>(i / w) / static_cast<GLfloat>(h)) - 1;
                         const auto pixelNDC = glm::vec4{x, y, depth[i] * depth[i], 1};
-                        //std::cout << x << " " << y << " " << std::endl;
                         auto worldSpacePos = inverse_mat * pixelNDC;
                         worldSpacePos /= worldSpacePos.w;
                         particles.spawnParticles(1, glm::vec3{worldSpacePos.x, worldSpacePos.y, worldSpacePos.z},
-                                                 start_velocity_func(), //TODO: change this with a "random" value from vector computed at the start of the function
-                                                 start_life_func(), //TODO: change this with a "random" value from vector computed at the start of the function
+                                                 random_velocity_vector[spawned_particles % random_vectors_size],
+                                                 random_life_vector[spawned_particles % random_vectors_size],
                                                  glm::vec4{
+                                                     //TODO: store these as bytes and convert to float inside shader
                                                      static_cast<GLfloat>(pixel.x) / 255.f,
                                                      static_cast<GLfloat>(pixel.y) / 255.f,
                                                      static_cast<GLfloat>(pixel.z) / 255.f,
                                                      1
                                                  }, particle_size);
+                        spawned_particles++;
                     }
                     i++;
                     if (const auto pixel = pixels[i]; glm::vec3{pixel.x, pixel.y, pixel.z} != zero_vec3)
@@ -125,18 +134,19 @@ public:
                         const auto x = 2 * (static_cast<GLfloat>(i % w) / static_cast<GLfloat>(w)) - 1;
                         const auto y = 2 * (static_cast<GLfloat>(i / w) / static_cast<GLfloat>(h)) - 1;
                         const auto pixelNDC = glm::vec4{x, y, depth[i] * depth[i], 1};
-                        //std::cout << x << " " << y << " " << std::endl;
                         auto worldSpacePos = inverse_mat * pixelNDC;
                         worldSpacePos /= worldSpacePos.w;
                         particles.spawnParticles(1, glm::vec3{worldSpacePos.x, worldSpacePos.y, worldSpacePos.z},
-                                                 start_velocity_func(), //TODO: change this with a "random" value from vector computed at the start of the function
-                                                 start_life_func(), //TODO: change this with a "random" value from vector computed at the start of the function
+                                                 random_velocity_vector[spawned_particles % random_vectors_size],
+                                                 random_life_vector[spawned_particles % random_vectors_size],
                                                  glm::vec4{
+                                                     //TODO: store these as bytes and convert to float inside shader
                                                      static_cast<GLfloat>(pixel.x) / 255.f,
                                                      static_cast<GLfloat>(pixel.y) / 255.f,
                                                      static_cast<GLfloat>(pixel.z) / 255.f,
                                                      1
                                                  }, particle_size);
+                        spawned_particles++;
                     }
                 }
             }
@@ -171,6 +181,9 @@ private:
     PboReadBuffer pboColorRBuf;
     DebugBuffer debugBuffer;
     PboReadBuffer pboDepthRBuf;
+    vector<float> random_life_vector;
+    vector<glm::vec3> random_velocity_vector;
+    unsigned int random_vectors_size = 1000;
     float angleY{0};
     float threshold{0};
 };
