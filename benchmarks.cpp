@@ -206,18 +206,18 @@ static void BM_ReadFrameBuffer(benchmark::State& state)
     PboReadBuffer pboColorRBuf{disappearingFragmentsFb.createPboReadColorBuffer()};
     PboReadBuffer pboDepthRBuf{disappearingFragmentsFb.createPboReadDepthBuffer()};
 
+    disappearingFragmentsFb.bind();
+    pboColorRBuf.bind();
+    const auto pixels_size_t = reinterpret_cast<size_t*>(pboColorRBuf.read());
+    pboColorRBuf.unbind();
+    pboDepthRBuf.bind();
+    benchmark::DoNotOptimize(reinterpret_cast<GLfloat*>(pboDepthRBuf.read()));
+    pboDepthRBuf.unbind();
+    FrameBuffer::unbind(renderer.screenWidth(), renderer.screenHeight());
+    const unsigned long num_of_words = pboColorRBuf.bufferSize() / 8;
+
     for (auto _ : state)
     {
-        disappearingFragmentsFb.bind();
-        pboColorRBuf.bind();
-        const auto pixels_size_t = reinterpret_cast<size_t*>(pboColorRBuf.read());
-        pboColorRBuf.unbind();
-        pboDepthRBuf.bind();
-        benchmark::DoNotOptimize(reinterpret_cast<GLfloat*>(pboDepthRBuf.read()));
-        pboDepthRBuf.unbind();
-        FrameBuffer::unbind(renderer.screenWidth(), renderer.screenHeight());
-
-        const unsigned long num_of_words = pboColorRBuf.bufferSize() / 8;
         for (auto j = 0; j < num_of_words; j++)
         {
             benchmark::DoNotOptimize(pixels_size_t[j]);
