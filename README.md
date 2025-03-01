@@ -104,6 +104,24 @@ Models and textures can be added respectively to assets/models and assets/textur
 - Rotate and scale the model
 - Particle control (max number, size, speed, lifetime, direction, movement randomness)
 
+### Benchmarks
+
+The executable Benchmarks-RTGP-Project runs all benchmarks
+To run a subset of benchmarks: --benchmark_filter=<regex> [Benchamark library docs](https://github.com/google/benchmark/blob/main/docs/user_guide.md#running-a-subset-of-benchmarks)
+
+List of benchmarks:
+- BM_UpdateParticles
+- BM_SpawnParticles
+- BM_SpawnAndReplaceParticles
+- BM_DrawParticles
+- BM_CopyFrameBuffer
+- BM_ReadFrameBuffer
+- BM_Pipeline_Step_1
+- BM_Pipeline_Step_2
+- BM_Pipeline_Step_3
+- BM_Pipeline_Step_4
+- BM_Pipeline_Complete
+
 ## Resources
 - Inspiration for this project [Disintegrating Meshes with Particles in 'God of War' GDC 2019 Talk](https://youtu.be/ajNSrTprWsg)
 - [Particles and instancing](http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/)
