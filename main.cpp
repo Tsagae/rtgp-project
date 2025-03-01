@@ -56,6 +56,7 @@ static float disappearing_object_scale = 2.f;
 static vec3 disappearing_object_position{1.f};
 static int particles_framebuffer_width_height[2] = {800, 600};
 static float particle_size = 0.1f;
+static bool particle_size_auto_scaling = true;
 
 void menu_window(GLFWwindow* window, ImGuiIO& io);
 
@@ -116,6 +117,12 @@ int main(int argc, char* argv[])
             std::cout << "resetting scene with model: " << selected_model << " texture: " << selected_texture <<
                 std::endl;
             scene.~Scene();
+            if (particle_size_auto_scaling)
+            {
+                const auto ratio = static_cast<float>(particles_framebuffer_width_height[0] *
+                    particles_framebuffer_width_height[1]) / static_cast<float>(w * h);
+                particle_size = (1 / (ratio + 0.08f)) * 0.03f;
+            }
             new(&scene) Scene(r, selected_model, selected_texture, selected_noise_texture, particle_number,
                               particles_framebuffer_width_height[0], particles_framebuffer_width_height[1]);
             scene.init(draw_particles, particle_size);
@@ -316,7 +323,19 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
     ImGui::gizmo3D("Particles Direction", particles_spawn_direction, 200, imguiGizmo::modeDirection);
     ImGui::SliderFloat3("Randomness XYZ", &particles_spawn_randomness[0], 0.f, 1.f, "%.3f");
     ImGui::DragFloat("Speed", &particles_spawn_speed, 0.005f, 0.0f, 10.f, "%.3f", ImGuiSliderFlags_Logarithmic);
-    if (ImGui::DragFloat("Size", &particle_size, 0.005f, 0.0f, 10.f, "%.3f", ImGuiSliderFlags_Logarithmic))
+
+    if (ImGui::Checkbox("Particle size auto scaling", &particle_size_auto_scaling))
+        reset_scene = true;
+    ImGui::SameLine();
+    HelpMarker("If checked the particle size roughly scales with the resolution of the particle buffer");
+    if (!particle_size_auto_scaling)
+    {
+        if (ImGui::DragFloat("Size", &particle_size, 0.005f, 0.0f, 10.f, "%.3f", ImGuiSliderFlags_Logarithmic))
+            reset_scene = true;
+    }
+    ImGui::SeparatorText("Other options");
+    if (ImGui::DragInt2("Particle buffer resolution (width, height)", particles_framebuffer_width_height, 1.f, 1.f,
+                        4000.f, "%d"))
         reset_scene = true;
 
     ImGui::SeparatorText("Particle lifetime");
@@ -325,10 +344,6 @@ void menu_window(GLFWwindow* window, ImGuiIO& io)
                      ImGuiSliderFlags_Logarithmic);
     ImGui::SliderFloat("Particle added spawn life randomness", &particle_added_spawn_life_randomness, 0.f, 1.f, "%.3f");
 
-    ImGui::SeparatorText("Other options");
-    if (ImGui::DragInt2("Particle buffer resolution (width, height)", particles_framebuffer_width_height, 1.f, 1.f,
-                        4000.f, "%d"))
-        reset_scene = true;
     ImGui::Checkbox("Show debug buffer (particles spawned in the current frame)", &show_debug_buffer);
     static bool vsync = true;
     if (ImGui::Checkbox("Vsync", &vsync))
