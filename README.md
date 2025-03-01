@@ -37,7 +37,7 @@ root folder of the project run:
    git clone https://github.com/microsoft/vcpkg.git
    cd vcpkg; .\bootstrap-vcpkg.bat -disableMetrics
    cmake -DCMAKE_BUILD_TYPE=Release --preset=default
-   cmake --build .\build
+   cmake --build .\build -- -j 10
 ```
 
 To not build the benchmark executable add `-DBUILD_BENCHMARK=OFF` to this cmake command:
