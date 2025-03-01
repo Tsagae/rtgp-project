@@ -96,5 +96,5 @@ Models and textures can be added respectively to assets/models and assets/textur
 - [Render to texture](http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/)
 - [PBO](https://www.songho.ca/opengl/gl_pbo.html)
 - [Opengl guides](https://www.learnopengl.com)
-- RTGP Course material
+- [RTGP Course material](https://www.unimi.it/en/education/degree-programme-courses/2025/real-time-graphics-programming)
 - Credits to [Screaming Brain Studios](https://screamingbrainstudios.com) for most of the noise textures
