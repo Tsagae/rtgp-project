@@ -5,6 +5,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${RTGP-Project_SOURCE_DIR})
 set(BUILD_BENCHMARKS ON CACHE BOOL "Build the benchmarks executable")
 
+if (WIN32)
+    set(VCPKG_DEFAULT_TRIPLET x64-windows)
+endif()
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 endif ()
